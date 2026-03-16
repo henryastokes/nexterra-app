@@ -1,846 +1,228 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8"/>
-<meta name="apple-mobile-web-app-capable" content="yes"/>
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
-<title>NexTerra — Decentralized Science Infrastructure for Africa</title>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
-<style>
-*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
-:root{
-  --bg:#0A1612;--bg2:#0F1E18;--card:#152820;--card2:#1A3028;
-  --primary:#2DB3A0;--accent:#5DBB8A;--golden:#D4A853;--lp:#E8470A;
-  --text:#fff;--text2:#A8C4B8;--text3:#5A7A6A;
-  --border:#1E3830;--success:#5DBB8A;--error:#EF5350;--warn:#D4A853;
-  --sidebar:240px;--content-max:1200px;
-}
-html,body{min-height:100vh;background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;overflow-x:hidden;}
-h1,h2,h3,.syne{font-family:'Syne',sans-serif;}
-
-/* ─── LAYOUT SHELL ─── */
-.shell{display:flex;min-height:100vh;}
-
-/* ─── SIDEBAR (desktop/tablet) ─── */
-.sidebar{width:var(--sidebar);min-width:var(--sidebar);background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;z-index:80;transition:transform .25s ease;overflow:hidden;}
-.sidebar-logo{display:flex;align-items:center;gap:10px;padding:20px 18px;border-bottom:1px solid var(--border);}
-.sidebar-logo-txt{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:var(--primary);}
-.sidebar-nav{flex:1;padding:12px 10px;display:flex;flex-direction:column;gap:4px;overflow-y:auto;}
-.snav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;cursor:pointer;border:none;background:none;width:100%;text-align:left;font-family:'DM Sans',sans-serif;color:var(--text2);font-size:13px;font-weight:500;transition:all .15s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.snav-item:hover{background:rgba(45,179,160,.08);color:var(--text);}
-.snav-item.on{background:rgba(45,179,160,.12);color:var(--primary);}
-.snav-ico{font-size:17px;width:22px;text-align:center;flex-shrink:0;}
-.snav-badge{margin-left:auto;background:rgba(239,83,80,.15);color:var(--error);font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;}
-.sidebar-footer{padding:14px;border-top:1px solid var(--border);}
-.user-mini{display:flex;align-items:center;gap:10px;padding:10px;border-radius:12px;cursor:pointer;transition:background .15s;}
-.user-mini:hover{background:rgba(255,255,255,.04);}
-.user-ava{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--accent));display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#0A1612;flex-shrink:0;}
-.user-name{font-size:13px;font-weight:600;}
-.user-role{font-size:11px;color:var(--text3);}
-.cred-pill{margin-left:auto;font-size:11px;font-weight:700;color:var(--primary);}
-
-/* ─── MAIN CONTENT ─── */
-.main{flex:1;margin-left:var(--sidebar);min-height:100vh;display:flex;flex-direction:column;min-width:0;overflow-x:hidden;}
-
-/* ─── TOP BAR (desktop) ─── */
-.topbar{display:flex;align-items:center;justify-content:space-between;padding:14px 28px;background:rgba(10,22,18,.95);backdrop-filter:blur(10px);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:70;}
-.topbar-title{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;}
-.topbar-right{display:flex;align-items:center;gap:12px;}
-.topbar-search{display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:8px 14px;min-width:180px;max-width:280px;}
-.topbar-search input{background:none;border:none;outline:none;font-size:13px;color:var(--text);font-family:'DM Sans',sans-serif;width:100%;}
-.topbar-search input::placeholder{color:var(--text3);}
-.notif-btn{position:relative;background:var(--card);border:1px solid var(--border);width:36px;height:36px;border-radius:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;}
-.notif-dot{position:absolute;top:6px;right:6px;width:7px;height:7px;border-radius:50%;background:var(--error);border:2px solid var(--bg);}
-
-/* ─── PAGE CONTENT ─── */
-.content{flex:1;padding:24px 28px;max-width:var(--content-max);width:100%;}
-.page{display:none;}
-.page.on{display:block;}
-
-/* ─── RESPONSIVE GRID SYSTEM ─── */
-.grid-2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;}
-.grid-3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;}
-.grid-4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;}
-.grid-sidebar{display:grid;grid-template-columns:1fr 300px;gap:20px;align-items:start;min-width:0;}
-
-/* ─── SHARED COMPONENTS ─── */
-.page-header{margin-bottom:22px;}
-.page-header h2{font-size:26px;font-weight:800;margin-bottom:4px;}
-.page-header p{font-size:14px;color:var(--text2);}
-.card{background:var(--card);border:1px solid var(--border);border-radius:16px;min-width:0;overflow:hidden;}
-.card2{background:var(--card2);border:1px solid var(--border);border-radius:16px;}
-.badge{font-size:10px;font-weight:700;padding:3px 8px;border-radius:6px;display:inline-flex;align-items:center;gap:3px;}
-.b-p{background:rgba(45,179,160,.15);color:var(--primary);}
-.b-g{background:rgba(212,168,83,.15);color:var(--golden);}
-.b-s{background:rgba(93,187,138,.15);color:var(--success);}
-.b-e{background:rgba(239,83,80,.15);color:var(--error);}
-.prog{height:5px;background:rgba(255,255,255,.07);border-radius:3px;overflow:hidden;}
-.prog-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--primary),var(--accent));}
-.prog-gold{background:linear-gradient(90deg,var(--golden),#fbbf24);}
-.avatar{border-radius:50%;background:var(--card2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--primary);flex-shrink:0;}
-.btn{padding:11px 20px;border-radius:11px;font-size:14px;font-weight:600;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s;}
-.btn-p{background:var(--primary);color:#0A1612;}
-.btn-p:hover{opacity:.9;}
-.btn-lp{background:var(--lp);color:#fff;}
-.btn-o{background:transparent;border:1px solid var(--border);color:var(--text2);}
-.btn-o:hover{border-color:var(--primary);color:var(--text);}
-.divider{height:1px;background:var(--border);margin:14px 0;}
-.scroll-x{display:flex;gap:8px;overflow-x:auto;}
-.scroll-x::-webkit-scrollbar{display:none;}
-.chip{padding:7px 14px;border-radius:20px;font-size:12px;font-weight:600;border:1px solid var(--border);background:var(--card);color:var(--text2);cursor:pointer;white-space:nowrap;transition:all .15s;}
-.chip.on{background:var(--primary);border-color:var(--primary);color:#071e1c;}
-.sec-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
-.sec-head h3{font-size:16px;font-weight:700;}
-.sec-head a{font-size:13px;color:var(--primary);font-weight:600;cursor:pointer;}
-.input{width:100%;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:11px 14px;font-size:14px;color:var(--text);font-family:'DM Sans',sans-serif;outline:none;transition:border-color .15s;}
-.input:focus{border-color:var(--primary);}
-.input::placeholder{color:var(--text3);}
-
-/* ─── STAT CARDS ─── */
-.stat-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px;}
-.stat-card .icon{font-size:22px;margin-bottom:8px;}
-.stat-card .val{font-size:22px;font-weight:800;margin-bottom:2px;word-break:break-all;}
-.stat-card .lbl{font-size:12px;color:var(--text2);}
-.stat-card .change{font-size:11px;color:var(--success);margin-top:4px;display:flex;align-items:center;gap:3px;}
-
-/* ─── VOTE PAGE ─── */
-.vote-grid{display:grid;grid-template-columns:1fr 280px;gap:20px;align-items:start;min-width:0;}
-.vote-card{padding:18px;background:var(--card);border:1px solid var(--border);border-radius:16px;margin-bottom:14px;}
-.vc-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:10px;flex-wrap:wrap;}
-.vc-title{font-size:16px;font-weight:700;margin-bottom:6px;line-height:1.4;}
-.vc-desc{font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:12px;}
-.vc-meta{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:10px;}
-.meta-i{display:flex;align-items:center;gap:4px;font-size:12px;color:var(--text3);}
-.meta-i.amt{color:var(--primary);}
-.bar-lbl{display:flex;justify-content:space-between;font-size:12px;color:var(--text2);margin-bottom:5px;}
-.vbtns{display:flex;gap:8px;margin-top:12px;}
-.vbtn{flex:1;padding:10px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--text2);font-family:'DM Sans',sans-serif;transition:all .15s;}
-.vbtn.for{border-color:rgba(45,179,160,.4);color:var(--primary);}
-.vbtn.for:hover{background:rgba(45,179,160,.1);}
-.vc-foot{display:flex;align-items:center;padding-top:12px;border-top:1px solid var(--border);gap:8px;margin-top:10px;}
-.vote-sidebar-card{padding:18px;background:var(--card);border:1px solid var(--border);border-radius:16px;margin-bottom:14px;}
-
-/* ─── FUND / WALLET PAGE ─── */
-.wallet-hero{padding:24px;background:linear-gradient(135deg,#1C1008,#0A1612);border:1px solid rgba(232,71,10,.3);border-radius:20px;position:relative;overflow:hidden;margin-bottom:20px;}
-.wallet-hero::before{content:'';position:absolute;top:-50px;right:-50px;width:200px;height:200px;border-radius:50%;background:rgba(232,71,10,.06);}
-.wh-grid{display:flex;justify-content:space-between;align-items:flex-end;position:relative;z-index:1;flex-wrap:wrap;gap:14px;}
-.wh-bal-lbl{font-size:13px;color:rgba(255,255,255,.4);margin-bottom:4px;}
-.wh-bal{font-size:38px;font-weight:800;letter-spacing:-1px;word-break:break-all;}
-.wh-bal span{font-size:20px;color:rgba(255,255,255,.3);font-weight:400;margin-right:4px;}
-.wh-change{font-size:12px;color:var(--success);margin-top:6px;}
-.wh-actions{display:flex;gap:10px;}
-.wh-action{display:flex;flex-direction:column;align-items:center;gap:5px;padding:12px 16px;background:rgba(255,255,255,.06);border-radius:12px;cursor:pointer;border:none;font-family:'DM Sans',sans-serif;color:var(--text2);transition:background .15s;}
-.wh-action:hover{background:rgba(232,71,10,.15);}
-.wh-action-ico{font-size:18px;}
-.wh-action-lbl{font-size:11px;font-weight:600;}
-.wh-footer{display:flex;justify-content:space-between;align-items:center;margin-top:16px;padding-top:14px;border-top:1px solid rgba(232,71,10,.15);position:relative;z-index:1;}
-.wh-id{font-size:10px;color:rgba(255,255,255,.25);font-family:monospace;}
-.wh-status{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--success);}
-.wh-dot{width:6px;height:6px;border-radius:50%;background:var(--success);animation:pulse 2s infinite;}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
-.proj-card{background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden;min-width:0;display:flex;flex-direction:column;}
-.proj-img{height:130px;background:linear-gradient(135deg,#1A3028,#0F2818);display:flex;align-items:center;justify-content:center;font-size:40px;line-height:1;overflow:hidden;}
-.proj-body{padding:16px;}
-.proj-title{font-size:15px;font-weight:700;margin-bottom:5px;}
-.proj-desc{font-size:13px;color:var(--text2);line-height:1.5;margin-bottom:10px;}
-.proj-prog-lbl{display:flex;justify-content:space-between;font-size:12px;color:var(--text2);margin-bottom:4px;}
-
-/* ─── MATCH PAGE ─── */
-.ai-tag{display:inline-flex;align-items:center;gap:5px;background:var(--card);border:1px solid var(--primary);border-radius:20px;padding:4px 12px;font-size:11px;font-weight:700;color:var(--primary);margin-bottom:10px;}
-.mode-toggle{display:flex;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:3px;gap:3px;margin-bottom:18px;width:fit-content;}
-.mode-btn{display:flex;align-items:center;gap:6px;padding:9px 18px;border-radius:9px;font-size:13px;font-weight:600;color:var(--text2);cursor:pointer;border:none;background:none;font-family:'DM Sans',sans-serif;transition:all .15s;}
-.mode-btn.on{background:var(--primary);color:#0A1612;}
-.match-card{background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden;min-width:0;display:flex;flex-direction:column;}
-.mc-img{height:160px;background:linear-gradient(135deg,#1A3028,#0F1E18);display:flex;align-items:center;justify-content:center;font-size:44px;line-height:1;overflow:hidden;position:relative;}
-.mc-badge{position:absolute;top:10px;right:10px;background:rgba(0,0,0,.7);padding:5px 10px;border-radius:16px;font-size:11px;font-weight:700;color:#fff;}
-.mc-body{padding:16px;}
-.mc-title{font-size:15px;font-weight:700;margin-bottom:8px;line-height:1.35;}
-.mc-meta{display:flex;gap:14px;margin-bottom:12px;}
-.mc-foot{display:flex;align-items:center;justify-content:space-between;}
-.like-btn{width:36px;height:36px;border-radius:50%;border:1px solid var(--primary);background:transparent;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;transition:all .15s;}
-.like-btn.liked{background:var(--primary);}
-.fcc{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;}
-.fcc-title{font-size:14px;font-weight:700;line-height:1.3;margin-bottom:6px;}
-.fcc-org{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text2);margin-bottom:8px;}
-.fcc-tags{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px;}
-.fcc-tag{background:rgba(45,179,160,.1);padding:2px 8px;border-radius:5px;font-size:11px;color:var(--primary);}
-.fcc-src{display:flex;justify-content:space-between;align-items:center;padding-top:10px;border-top:1px solid var(--border);font-size:11px;color:var(--text3);}
-
-/* ─── DAO PAGE ─── */
-.dao-card{background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden;min-width:0;display:flex;flex-direction:column;}
-.dc-img{height:110px;background:linear-gradient(135deg,#1A3028,#0F2818);display:flex;align-items:center;justify-content:center;font-size:34px;line-height:1;overflow:hidden;}
-.dc-body{padding:16px;}
-.dc-name{font-size:15px;font-weight:700;margin-bottom:4px;}
-.dc-desc{font-size:12px;color:var(--text2);line-height:1.5;margin-bottom:10px;}
-.dc-meta{display:flex;gap:12px;margin-bottom:12px;}
-.dc-m{display:flex;align-items:center;gap:3px;font-size:12px;color:var(--text2);}
-.dc-foot{display:flex;justify-content:space-between;align-items:center;padding-top:10px;border-top:1px solid var(--border);}
-.chain-badge{background:var(--card2);padding:3px 9px;border-radius:6px;font-size:10px;font-weight:700;color:var(--text2);}
-.status-panel{padding:20px;background:var(--card2);border:1px solid var(--primary);border-radius:16px;}
-.alloc-item{display:flex;align-items:center;padding:13px 0;border-bottom:1px solid var(--border);}
-.alloc-item:last-child{border-bottom:none;}
-.alloc-dot{width:10px;height:10px;border-radius:50%;margin-right:10px;flex-shrink:0;}
-.alloc-lbl{flex:1;font-size:13px;font-weight:500;}
-.alloc-val{font-size:12px;color:var(--text2);margin-right:8px;}
-.alloc-pct{font-size:13px;font-weight:700;color:var(--primary);width:34px;text-align:right;}
-.dao-subtabs{display:flex;gap:4px;margin-bottom:18px;}
-.dao-stab{padding:8px 16px;border-radius:20px;font-size:12px;font-weight:700;border:1px solid var(--border);background:var(--card);color:var(--text2);cursor:pointer;}
-.dao-stab.on{background:var(--primary);border-color:var(--primary);color:#071e1c;}
-
-/* ─── INTELLIGENCE PAGE ─── */
-.intel-banner{padding:20px;background:linear-gradient(135deg,rgba(45,179,160,.1),rgba(45,179,160,.03));border:1px solid rgba(45,179,160,.2);border-radius:16px;margin-bottom:20px;}
-.pattern-card{padding:18px;background:var(--card);border:1px solid var(--border);border-radius:16px;}
-.pc-title{font-size:14px;font-weight:700;margin-bottom:8px;line-height:1.4;word-break:break-word;}
-.conf-bar{height:4px;background:rgba(255,255,255,.07);border-radius:2px;overflow:hidden;margin-bottom:10px;}
-.conf-fill{height:100%;border-radius:2px;background:var(--primary);}
-.pm-tag{background:rgba(45,179,160,.1);padding:3px 9px;border-radius:6px;font-size:11px;color:var(--primary);}
-.risk-card{padding:18px;background:var(--card);border-radius:16px;border-left:3px solid;}
-.alert-card{padding:18px;background:var(--card);border:1px solid var(--border);border-radius:16px;}
-.urg-im{background:rgba(239,83,80,.15);color:var(--error);}
-.urg-dev{background:rgba(212,168,83,.15);color:var(--warn);}
-.urg-mon{background:rgba(45,179,160,.15);color:var(--primary);}
-.intel-tabs{display:flex;gap:4px;margin-bottom:18px;flex-wrap:wrap;}
-.itab{padding:8px 16px;border-radius:20px;font-size:12px;font-weight:700;border:1px solid var(--border);background:var(--card);color:var(--text2);cursor:pointer;white-space:nowrap;}
-.itab.on{background:var(--primary);border-color:var(--primary);color:#071e1c;}
-.src-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:10px;}
-.src-item{background:var(--card2);border-radius:10px;padding:12px;text-align:center;}
-.src-val{font-size:18px;font-weight:700;color:var(--primary);}
-.src-lbl{font-size:11px;color:var(--text3);margin-top:2px;}
-
-/* ─── COMMUNITY PAGE ─── */
-.feed-post{padding:18px;background:var(--card);border:1px solid var(--border);border-radius:16px;}
-.fp-head{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
-.fp-ava{width:44px;height:44px;border-radius:50%;background:var(--card2);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;color:var(--primary);flex-shrink:0;}
-.fp-name{font-size:14px;font-weight:700;}
-.fp-meta{font-size:11px;color:var(--text3);margin-top:1px;}
-.fp-content{font-size:14px;color:var(--text2);line-height:1.7;margin-bottom:12px;}
-.fp-media{width:100%;height:160px;background:linear-gradient(135deg,#1A3028,#0F1E18);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:36px;line-height:1;overflow:hidden;margin-bottom:12px;}
-.fp-actions{display:flex;align-items:center;gap:16px;padding-top:10px;border-top:1px solid var(--border);}
-.fp-act{display:flex;align-items:center;gap:5px;font-size:13px;color:var(--text2);cursor:pointer;background:none;border:none;font-family:'DM Sans',sans-serif;transition:color .15s;}
-.fp-act:hover{color:var(--text);}
-.fp-act.liked{color:var(--error);}
-.fp-comments{margin-top:14px;display:flex;flex-direction:column;gap:8px;}
-.fc-ava{width:30px;height:30px;border-radius:50%;background:var(--card2);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:var(--primary);flex-shrink:0;}
-.fc-bubble{background:var(--card2);border-radius:0 10px 10px 10px;padding:9px 12px;flex:1;}
-.fc-name{font-size:11px;font-weight:700;margin-bottom:3px;}
-.fc-text{font-size:13px;color:var(--text2);line-height:1.4;}
-.user-card{display:flex;align-items:center;gap:12px;padding:16px;background:var(--card);border:1px solid var(--border);border-radius:14px;}
-.uc-ava{width:48px;height:48px;border-radius:50%;background:var(--card2);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;color:var(--primary);flex-shrink:0;}
-.uc-exp{display:flex;gap:5px;margin-top:5px;flex-wrap:wrap;}
-.exp-tag{background:rgba(45,179,160,.1);padding:2px 7px;border-radius:5px;font-size:10px;color:var(--primary);}
-
-/* ─── PROFILE PAGE ─── */
-.profile-hero{padding:24px 28px;background:var(--card2);border:1px solid var(--border);border-radius:20px;margin-bottom:20px;display:flex;gap:20px;align-items:flex-start;flex-wrap:wrap;}
-.profile-ava{width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--accent));display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:800;color:#0A1612;flex-shrink:0;border:3px solid rgba(45,179,160,.3);}
-.profile-name{font-size:22px;font-weight:800;margin-bottom:3px;}
-.profile-role{font-size:14px;color:var(--primary);font-weight:600;margin-bottom:2px;}
-.profile-affil{font-size:13px;color:var(--text2);}
-.profile-loc{font-size:12px;color:var(--text3);margin-top:4px;}
-.profile-bio-card{padding:18px;background:var(--card);border:1px solid var(--border);border-radius:16px;margin-bottom:16px;}
-.cred-section{padding:20px;background:var(--card);border:1px solid var(--border);border-radius:16px;}
-.cred-circle{width:70px;height:70px;border-radius:50%;border:3px solid var(--primary);display:flex;align-items:center;justify-content:center;flex-direction:column;flex-shrink:0;}
-.cred-num{font-size:22px;font-weight:800;color:var(--primary);}
-.cm-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
-.cm-lbl{font-size:13px;color:var(--text2);width:160px;flex-shrink:0;}
-.cm-bar{flex:1;height:5px;background:rgba(255,255,255,.07);border-radius:3px;overflow:hidden;}
-.cm-fill{height:100%;border-radius:3px;background:var(--primary);}
-.cm-score{font-size:13px;font-weight:700;color:var(--primary);width:30px;text-align:right;}
-
-/* ─── TRANSACTION LIST ─── */
-.tx-item{display:flex;align-items:center;gap:12px;padding:14px 0;border-bottom:1px solid var(--border);}
-.tx-item:last-child{border-bottom:none;}
-.tx-ico{width:40px;height:40px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
-.tx-ico.in{background:rgba(93,187,138,.12);}
-.tx-ico.out{background:rgba(232,71,10,.1);}
-.tx-ico.pend{background:rgba(212,168,83,.1);}
-.tx-name{font-size:14px;font-weight:600;}
-.tx-meta{font-size:11px;color:var(--text3);margin-top:2px;}
-.tx-badge{font-size:10px;padding:2px 7px;border-radius:5px;display:inline-block;font-weight:700;margin-top:3px;}
-.txb-ok{background:rgba(93,187,138,.12);color:var(--success);}
-.txb-pend{background:rgba(212,168,83,.12);color:var(--warn);}
-.tx-amt{font-size:14px;font-weight:700;text-align:right;}
-.tx-in{color:var(--success);}
-.tx-out{color:var(--lp);}
-
-/* ─── LP LOGO ─── */
-.lp-svg{display:inline-flex;}
-
-/* ─── MOBILE NAV (hidden on desktop) ─── */
-.mobile-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:rgba(10,22,18,.97);backdrop-filter:blur(16px);border-top:1px solid var(--border);z-index:80;padding:8px 0 20px;}
-.mobile-nav-inner{display:flex;justify-content:space-around;}
-.mni{display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;padding:4px 8px;background:none;border:none;}
-.mni-ico{font-size:19px;color:var(--text3);}
-.mni-lbl{font-size:9px;color:var(--text3);font-weight:600;}
-.mni.on .mni-ico,.mni.on .mni-lbl{color:var(--primary);}
-
-/* ─── MOBILE HEADER (hidden on desktop) ─── */
-.mobile-header{display:none;position:sticky;top:0;z-index:70;background:rgba(10,22,18,.96);backdrop-filter:blur(10px);border-bottom:1px solid var(--border);padding:12px 16px;align-items:center;justify-content:space-between;}
-.hamburger{background:none;border:none;cursor:pointer;font-size:20px;color:var(--text);}
-
-/* ─── TABLET BREAKPOINT ─── */
-@media (max-width: 1024px) {
-  :root{--sidebar:200px;}
-  .grid-4{grid-template-columns:repeat(2,minmax(0,1fr));}
-  .vote-grid{grid-template-columns:1fr;}
-  .grid-sidebar{grid-template-columns:1fr;}
-  .content{padding:20px 20px;}
-  .topbar{padding:12px 20px;}
-  .topbar-search{min-width:160px;}
-}
-
-/* ─── MOBILE BREAKPOINT ─── */
-@media (max-width: 768px) {
-  .sidebar{transform:translateX(-100%);}
-  .sidebar.open{transform:translateX(0);}
-  .main{margin-left:0;}
-  .topbar{display:none;}
-  .mobile-header{display:flex;}
-  .mobile-nav{display:block;}
-  .content{padding:14px 14px 90px;}
-  .grid-2,.grid-3,.grid-4{grid-template-columns:1fr;}
-  .grid-sidebar{grid-template-columns:1fr;}
-  .vote-grid{grid-template-columns:1fr;}
-  .wh-grid{grid-template-columns:1fr;}
-  .wh-actions{margin-top:14px;}
-  .profile-hero{flex-direction:column;}
-  .mode-toggle{width:100%;}
-  .mode-btn{flex:1;justify-content:center;}
-  .page-header h2{font-size:22px;}
-  .src-row{grid-template-columns:repeat(2,1fr);}
-}
-
-/* ─── SIDEBAR OVERLAY (mobile) ─── */
-.sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:79;}
-.sidebar-overlay.open{display:block;}
-
-/* ─── TOAST ─── */
-.toast{display:none;position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--success);color:#0A1612;padding:11px 20px;border-radius:12px;font-size:13px;font-weight:700;z-index:300;white-space:nowrap;}
-@media (min-width:769px){.toast{bottom:24px;}}
-
-/* notice boxes */
-.notice{display:flex;gap:8px;padding:11px 12px;background:rgba(45,179,160,.07);border:1px solid rgba(45,179,160,.15);border-radius:10px;margin-bottom:13px;}
-.notice p{font-size:13px;color:var(--text2);line-height:1.5;}
-.notice.warn{background:rgba(232,71,10,.06);border-color:rgba(232,71,10,.18);}
-
-/* ── GLOBAL OVERFLOW FIXES ── */
-*{min-width:0;}
-img{max-width:100%;height:auto;display:block;}
-.content{flex:1;padding:24px 28px;max-width:var(--content-max);overflow-x:hidden;min-width:0;}
-.ds-ico{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px;margin-bottom:8px;flex-shrink:0;}
-html,body{min-height:100vh;background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;overflow-x:hidden;}
-
-/* ── CARD BODY FLEX FIX ── */
-.proj-body,.mc-body,.dc-body{flex:1;display:flex;flex-direction:column;min-width:0;}
-
-/* ── PROFESSIONAL SCROLLBAR ── */
-::-webkit-scrollbar{width:6px;height:6px;}
-::-webkit-scrollbar-track{background:var(--bg2);}
-::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
-::-webkit-scrollbar-thumb:hover{background:var(--text3);}
-
-/* ── PREVENT TEXT OVERFLOW IN CARDS ── */
-.vc-title,.proj-title,.mc-title,.dc-name,.fc-name,.fp-name,.profile-name{word-break:break-word;overflow-wrap:break-word;}
-
-/* ── BADGE WRAPPING FIX ── */
-.badge{white-space:nowrap;flex-shrink:0;}
-
-/* ── FIX SIDEBAR USER SECTION ── */
-.user-mini{overflow:hidden;}
-.user-name,.user-role{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-
-/* ── TOPBAR FIX FOR OVERFLOW ── */
-.topbar{overflow:hidden;}
-.topbar-title{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-
-/* ── VOTE CARD META OVERFLOW ── */
-.vc-meta{overflow:hidden;}
-.meta-i{max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-
-/* ── STAT CARD ICON SIZES ── */
-.stat-card .icon{font-size:20px;line-height:1;display:block;}
-
-/* ── DAO STAT LAYOUT FIX ── */
-.dao-stat{display:flex;flex-direction:column;}
-
-/* ── WALLET BALANCE CONTAINER ── */
-.wallet-hero{overflow:hidden;}
-
-/* ── FIX BOTTOM NAV ON WIDER MOBILE ── */
-@media (max-width:768px){
-  .content{padding:14px 14px 90px;overflow-x:hidden;}
-  .grid-2,.grid-3,.grid-4{grid-template-columns:1fr !important;}
-  .vote-grid,.grid-sidebar{grid-template-columns:1fr !important;}
-  .wh-grid{flex-direction:column;align-items:flex-start;}
-  .wh-actions{flex-wrap:wrap;gap:8px;}
-  .wh-action{padding:10px 14px;}
-  .mc-img{font-size:36px;}
-  .proj-img{font-size:32px;}
-  .dc-img{font-size:28px;}
-  .stat-card .val{font-size:20px;}
-  .profile-hero{padding:18px;}
-  .profile-name{font-size:19px;}
-}
-
-/* ── TABLET FIXES ── */
-@media (min-width:769px) and (max-width:1024px){
-  .content{padding:18px 18px;}
-  .grid-3{grid-template-columns:repeat(2,minmax(0,1fr));}
-  .grid-4{grid-template-columns:repeat(2,minmax(0,1fr));}
-  .vote-grid{grid-template-columns:1fr;}
-  .grid-sidebar{grid-template-columns:1fr;}
-}
-
-/* ── LARGE SCREEN POLISH ── */
-@media (min-width:1400px){
-  :root{--content-max:1100px;}
-  .grid-3{grid-template-columns:repeat(3,minmax(0,1fr));}
-}
-
-/* ── TOUCH IMPROVEMENTS ── */
-@media (hover:none){
-  .btn:active{opacity:.85;transform:scale(.98);}
-  .snav-item:active{background:rgba(45,179,160,.12);}
-}
-
-</style>
-</head>
-<body>
-
-<!-- SIDEBAR OVERLAY (mobile) -->
-<div class="sidebar-overlay" id="overlay" onclick="closeSidebar()"></div>
-
-<!-- SIDEBAR -->
-<nav class="sidebar" id="sidebar">
-  <div class="sidebar-logo">
-    <svg width="28" height="28" viewBox="0 0 80 80" fill="none">
-      <ellipse cx="40" cy="22" rx="18" ry="16" fill="#2DB3A0" opacity=".95"/>
-      <ellipse cx="24" cy="52" rx="18" ry="16" fill="#5DBB8A" opacity=".9"/>
-      <ellipse cx="56" cy="52" rx="18" ry="16" fill="#D4A853" opacity=".9"/>
-      <circle cx="40" cy="44" r="10" fill="#0A1612"/>
-    </svg>
-    <span class="sidebar-logo-txt">NexTerra</span>
-  </div>
-  <div class="sidebar-nav">
-    <button class="snav-item on" id="snav-vote" onclick="goTo('vote')"><span class="snav-ico">🗳</span>Vote</button>
-    <button class="snav-item" id="snav-fund" onclick="goTo('fund')"><span class="snav-ico">💰</span>Fund</button>
-    <button class="snav-item" id="snav-match" onclick="goTo('match')"><span class="snav-ico">✨</span>Match</button>
-    <button class="snav-item" id="snav-dao" onclick="goTo('dao')"><span class="snav-ico">🏛</span>DAO</button>
-    <button class="snav-item" id="snav-intel" onclick="goTo('intel')"><span class="snav-ico">🧠</span>Intelligence<span class="snav-badge">3</span></button>
-    <button class="snav-item" id="snav-community" onclick="goTo('community')"><span class="snav-ico">👥</span>Community</button>
-    <button class="snav-item" id="snav-profile" onclick="goTo('profile')"><span class="snav-ico">👤</span>Profile</button>
-  </div>
-  <div class="sidebar-footer">
-    <div class="user-mini" onclick="goTo('profile')">
-      <div class="user-ava">AM</div>
-      <div><div class="user-name">Amina Mwangi</div><div class="user-role">DAO Lead · Kenya</div></div>
-      <div class="cred-pill">91</div>
-    </div>
-  </div>
-</nav>
-
-<div class="shell">
-  <div class="main">
-    <!-- MOBILE HEADER -->
-    <header class="mobile-header" id="mheader">
-      <div style="display:flex;align-items:center;gap:10px;">
-        <button class="hamburger" onclick="openSidebar()">☰</button>
-        <svg width="22" height="22" viewBox="0 0 80 80" fill="none"><ellipse cx="40" cy="22" rx="18" ry="16" fill="#2DB3A0" opacity=".95"/><ellipse cx="24" cy="52" rx="18" ry="16" fill="#5DBB8A" opacity=".9"/><ellipse cx="56" cy="52" rx="18" ry="16" fill="#D4A853" opacity=".9"/><circle cx="40" cy="44" r="10" fill="#0A1612"/></svg>
-        <span style="font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:var(--primary);">NexTerra</span>
-      </div>
-      <div style="display:flex;align-items:center;gap:8px;">
-        <div class="notif-btn" onclick="alert('3 new intelligence alerts')">🔔<span class="notif-dot"></span></div>
-        <div class="avatar" style="width:32px;height:32px;font-size:11px;background:linear-gradient(135deg,var(--primary),var(--accent));color:#0A1612;" onclick="goTo('profile')">AM</div>
-      </div>
-    </header>
-
-    <!-- DESKTOP TOPBAR -->
-    <div class="topbar">
-      <div class="topbar-title" id="topbar-title">Vote on Initiatives</div>
-      <div class="topbar-right">
-        <div class="topbar-search">
-          <span style="font-size:14px;">🔍</span>
-          <input placeholder="Search proposals, projects, members…"/>
-        </div>
-        <div class="notif-btn" onclick="alert('3 new intelligence alerts — click Intelligence in the sidebar')">🔔<span class="notif-dot"></span></div>
-        <div class="avatar" style="width:36px;height:36px;font-size:12px;background:linear-gradient(135deg,var(--primary),var(--accent));color:#0A1612;cursor:pointer;" onclick="goTo('profile')">AM</div>
-      </div>
-    </div>
-
-    <!-- CONTENT -->
-    <div class="content">
-
-      <!-- ══ VOTE PAGE ══ -->
-      <div id="page-vote" class="page on">
-        <div class="page-header">
-          <h2>Vote on Initiatives</h2>
-          <p>Shape Africa's climate and health future — 7-day voting windows on proposals and asks.</p>
-        </div>
-        <div class="grid-4" style="margin-bottom:20px;">
-          <div class="stat-card"><div class="icon">📋</div><div class="val">14</div><div class="lbl">Active items</div><div class="change">↑ 3 new this week</div></div>
-          <div class="stat-card"><div class="icon">👍</div><div class="val">8,432</div><div class="lbl">Total votes cast</div><div class="change">↑ +640 today</div></div>
-          <div class="stat-card"><div class="icon">💰</div><div class="val">$4.2M</div><div class="lbl">In active proposals</div><div class="change">↑ $800K this month</div></div>
-          <div class="stat-card"><div class="icon">🌍</div><div class="val">23</div><div class="lbl">Countries represented</div><div class="change">↑ 2 new</div></div>
-        </div>
-        <div class="vote-grid">
-          <div>
-            <div style="display:flex;gap:8px;margin-bottom:14px;" class="scroll-x">
-              <div class="chip on" onclick="filterChips(this)">All (14)</div>
-              <div class="chip" onclick="filterChips(this)">Proposals (9)</div>
-              <div class="chip" onclick="filterChips(this)">Asks (5)</div>
-              <div class="chip" onclick="filterChips(this)">Climate</div>
-              <div class="chip" onclick="filterChips(this)">Health</div>
-            </div>
-            <div class="vote-card">
-              <div class="vc-top"><div style="display:flex;gap:6px;"><span class="badge b-p">📄 Proposal</span><span class="badge b-p">Climate DAO</span></div><span style="font-size:12px;color:var(--accent);font-weight:600;">⏱ 5d left</span></div>
-              <div class="vc-title">East Africa Flood Early Warning Network</div>
-              <div class="vc-desc">Real-time flood monitoring across Kenya, Uganda and Tanzania using IoT sensors and satellite imagery. Community-led data collection with 400+ field practitioners.</div>
-              <div class="vc-meta"><span class="meta-i">📍 Kenya, Uganda, Tanzania</span><span class="meta-i amt">💵 2,400,000 USDC</span><span class="meta-i">👥 1,842 votes cast</span></div>
-              <div class="bar-lbl"><span>73% For</span><span>27% Against</span></div>
-              <div class="prog"><div class="prog-fill" style="width:73%"></div></div>
-              <div class="vbtns"><button class="vbtn for" onclick="vote(this,'for')">✓ Vote For</button><button class="vbtn" onclick="vote(this,'against')">✗ Vote Against</button></div>
-              <div class="vc-foot"><div class="avatar" style="width:32px;height:32px;font-size:11px;">AM</div><span style="font-size:13px;">Amina Mwangi</span><span style="margin-left:auto;font-size:11px;color:var(--text3);">University of Nairobi</span></div>
-            </div>
-            <div class="vote-card">
-              <div class="vc-top"><div style="display:flex;gap:6px;"><span class="badge b-p">📄 Proposal</span><span class="badge b-s">✓ Passed</span></div><span class="badge b-s">Passed</span></div>
-              <div class="vc-title">West Africa Malaria Genomic Surveillance Sub-DAO</div>
-              <div class="vc-desc">Community-led genomic tracking of malaria variants across Ghana, Nigeria, and Senegal with 24/7 automated reporting to national health ministries.</div>
-              <div class="vc-meta"><span class="meta-i">📍 Ghana, Nigeria, Senegal</span><span class="meta-i amt">💵 2,000,000 USDC</span></div>
-              <div class="bar-lbl"><span>81% For</span><span>19% Against</span></div>
-              <div class="prog"><div class="prog-fill" style="width:81%"></div></div>
-              <div class="vc-foot"><div class="avatar" style="width:32px;height:32px;font-size:11px;">KA</div><span style="font-size:13px;">Dr. Kwame Asante</span><span style="margin-left:auto;font-size:11px;color:var(--text3);">University of Ghana</span></div>
-            </div>
-            <div class="vote-card">
-              <div class="vc-top"><div style="display:flex;gap:6px;"><span class="badge b-g">❓ Ask</span><span class="badge b-e">⚠ Critical</span></div><span style="font-size:12px;color:var(--error);font-weight:600;">2d left</span></div>
-              <div class="vc-title">Emergency Cholera Response — Eastern DRC Border Camps</div>
-              <div class="vc-desc">Urgent field support request: water purification equipment, oral rehydration supplies, and 12 trained health workers for an active outbreak affecting 12,000+ people.</div>
-              <div class="vc-meta"><span class="meta-i">📍 Eastern DRC</span><span class="meta-i amt">💵 85,000 USDC</span></div>
-              <div class="bar-lbl"><span>58% For</span><span>42% Against</span></div>
-              <div class="prog"><div class="prog-fill" style="width:58%"></div></div>
-              <div class="vbtns"><button class="vbtn for" onclick="vote(this,'for')">✓ Vote For</button><button class="vbtn" onclick="vote(this,'against')">✗ Vote Against</button></div>
-              <div class="vc-foot"><div class="avatar" style="width:32px;height:32px;font-size:11px;">FO</div><span style="font-size:13px;">Fatima Ouedraogo</span><span style="margin-left:auto;font-size:11px;color:var(--text3);">MSF — DRC</span></div>
-            </div>
-          </div>
-          <div>
-            <div class="vote-sidebar-card">
-              <div class="sec-head"><h3>🏆 Leaderboard</h3><a onclick="goTo('community')">See all</a></div>
-              <div style="display:flex;flex-direction:column;gap:10px;">
-                <div style="display:flex;align-items:center;gap:10px;"><span style="font-size:16px;font-weight:800;color:var(--golden);width:20px;">1</span><div class="avatar" style="width:34px;height:34px;font-size:11px;">AM</div><div style="flex:1;"><div style="font-size:13px;font-weight:600;">Amina Mwangi</div><div style="font-size:11px;color:var(--text3);">2,840 credits</div></div><div style="font-size:13px;font-weight:700;color:var(--primary);">94</div></div>
-                <div style="display:flex;align-items:center;gap:10px;"><span style="font-size:16px;font-weight:800;color:var(--text2);width:20px;">2</span><div class="avatar" style="width:34px;height:34px;font-size:11px;">KA</div><div style="flex:1;"><div style="font-size:13px;font-weight:600;">Kwame Asante</div><div style="font-size:11px;color:var(--text3);">2,210 credits</div></div><div style="font-size:13px;font-weight:700;color:var(--primary);">91</div></div>
-                <div style="display:flex;align-items:center;gap:10px;"><span style="font-size:16px;font-weight:800;color:var(--text3);width:20px;">3</span><div class="avatar" style="width:34px;height:34px;font-size:11px;">ZM</div><div style="flex:1;"><div style="font-size:13px;font-weight:600;">Zanele Mokoena</div><div style="font-size:11px;color:var(--text3);">1,890 credits</div></div><div style="font-size:13px;font-weight:700;color:var(--primary);">88</div></div>
-              </div>
-            </div>
-            <div class="vote-sidebar-card" style="margin-top:14px;">
-              <div class="sec-head"><h3>🧠 Intelligence Alerts</h3><a onclick="goTo('intel')">View all</a></div>
-              <div style="display:flex;flex-direction:column;gap:8px;">
-                <div style="padding:10px;background:rgba(239,83,80,.08);border:1px solid rgba(239,83,80,.2);border-radius:10px;"><div style="font-size:12px;font-weight:700;color:var(--error);margin-bottom:2px;">🚨 Critical — DRC</div><div style="font-size:12px;color:var(--text2);">Cholera outbreak signal detected</div></div>
-                <div style="padding:10px;background:rgba(212,168,83,.08);border:1px solid rgba(212,168,83,.2);border-radius:10px;"><div style="font-size:12px;font-weight:700;color:var(--warn);margin-bottom:2px;">⚡ Developing — Sahel</div><div style="font-size:12px;color:var(--text2);">Drought-driven food crisis signal</div></div>
-                <div style="padding:10px;background:rgba(45,179,160,.06);border:1px solid rgba(45,179,160,.15);border-radius:10px;"><div style="font-size:12px;font-weight:700;color:var(--primary);margin-bottom:2px;">👁 Monitoring — East Africa</div><div style="font-size:12px;color:var(--text2);">Vaccine hesitancy pattern rising</div></div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- ══ FUND PAGE ══ -->
-      <div id="page-fund" class="page">
-        <div class="page-header"><h2>Fund Projects</h2><p>Support voted proposals and asks. Powered by LinkPay.</p></div>
-        <div class="wallet-hero">
-          <div class="wh-grid">
-            <div>
-              <div style="margin-bottom:14px;"><svg height="24" viewBox="0 0 220 52" fill="none"><text x="0" y="40" font-family="Syne,Arial" font-weight="900" font-size="42" fill="#FFF" letter-spacing="-1">LINK</text><polygon points="108,2 210,2 218,50 116,50" fill="#E8470A"/><text x="118" y="40" font-family="Syne,Arial" font-weight="900" font-size="42" fill="#FFF" letter-spacing="-1">PAY</text></svg></div>
-              <div class="wh-bal-lbl">Available Balance</div>
-              <div class="wh-bal"><span>USD</span>4,250.00</div>
-              <div class="wh-change">↑ +$320.00 this month</div>
-            </div>
-            <div class="wh-actions">
-              <button class="wh-action" onclick="showToast('Deposit flow — LinkPay API coming soon')"><span class="wh-action-ico">⬇️</span><span class="wh-action-lbl">Deposit</span></button>
-              <button class="wh-action" onclick="showToast('Fund a project — LinkPay API coming soon')"><span class="wh-action-ico">⬆️</span><span class="wh-action-lbl">Fund</span></button>
-              <button class="wh-action" onclick="showToast('Withdraw — LinkPay API coming soon')"><span class="wh-action-ico">🏦</span><span class="wh-action-lbl">Withdraw</span></button>
-            </div>
-          </div>
-          <div class="wh-footer"><span class="wh-id">NXT-WALLET-0x4a2f...c81d</span><span class="wh-status"><span class="wh-dot"></span>Connected</span></div>
-        </div>
-        <div class="grid-3" style="margin-bottom:20px;">
-          <div class="stat-card"><div class="icon">💸</div><div class="val">$12,400</div><div class="lbl">Total funded by you</div></div>
-          <div class="stat-card"><div class="icon">🎯</div><div class="val">$8,150</div><div class="lbl">Disbursed on-chain</div></div>
-          <div class="stat-card"><div class="icon">⭐</div><div class="val">1,250</div><div class="lbl">Governance credits</div></div>
-        </div>
-        <div class="grid-3">
-          <div class="proj-card"><div class="proj-img">🌊</div><div class="proj-body"><div style="display:flex;justify-content:space-between;margin-bottom:8px;"><div style="display:flex;gap:5px;"><span class="badge b-p">Proposal</span><span class="badge b-s">73% vote</span></div><span style="font-size:12px;color:var(--accent);font-weight:600;">18d left</span></div><div class="proj-title">East Africa Flood Early Warning</div><div class="proj-desc">IoT + satellite monitoring across Kenya, Uganda, Tanzania.</div><div class="proj-prog-lbl"><span>$1.8M raised</span><span>64%</span></div><div class="prog"><div class="prog-fill" style="width:64%"></div></div><button class="btn btn-lp" style="width:100%;margin-top:12px;" onclick="showToast('Fund This Proposal — LinkPay payment coming soon')">💵 Fund This Proposal</button></div></div>
-          <div class="proj-card"><div class="proj-img">💊</div><div class="proj-body"><div style="display:flex;justify-content:space-between;margin-bottom:8px;"><div style="display:flex;gap:5px;"><span class="badge b-g">Ask</span><span class="badge b-e">Urgent</span></div><span style="font-size:12px;color:var(--error);font-weight:600;">2d left</span></div><div class="proj-title">Emergency Cholera Response — DRC</div><div class="proj-desc">Water purification and rehydration supplies for outbreak.</div><div class="proj-prog-lbl"><span>$42K raised</span><span>49%</span></div><div class="prog"><div class="prog-fill prog-gold" style="width:49%"></div></div><button class="btn" style="width:100%;margin-top:12px;background:var(--golden);color:#0A1612;" onclick="showToast('Fund This Ask — LinkPay payment coming soon')">💵 Fund This Ask</button></div></div>
-          <div class="proj-card"><div class="proj-img">🌱</div><div class="proj-body"><div style="display:flex;justify-content:space-between;margin-bottom:8px;"><div style="display:flex;gap:5px;"><span class="badge b-p">Proposal</span><span class="badge b-s">87% vote</span></div><span style="font-size:12px;color:var(--accent);font-weight:600;">12d left</span></div><div class="proj-title">Sahel Agroforestry Carbon Index</div><div class="proj-desc">Measuring carbon sequestration across 3 countries.</div><div class="proj-prog-lbl"><span>$320K raised</span><span>22%</span></div><div class="prog"><div class="prog-fill" style="width:22%"></div></div><button class="btn btn-p" style="width:100%;margin-top:12px;" onclick="showToast('Fund This Proposal — LinkPay payment coming soon')">💵 Fund This Proposal</button></div></div>
-        </div>
-        <div style="margin-top:16px;padding:14px;background:var(--card);border:1px dashed rgba(232,71,10,.35);border-radius:12px;display:flex;align-items:center;gap:12px;">
-          <svg height="16" viewBox="0 0 220 52" fill="none"><text x="0" y="40" font-family="Syne,Arial" font-weight="900" font-size="42" fill="#fff" letter-spacing="-1">LINK</text><polygon points="108,2 210,2 218,50 116,50" fill="#E8470A"/><text x="118" y="40" font-family="Syne,Arial" font-weight="900" font-size="42" fill="#fff" letter-spacing="-1">PAY</text></svg>
-          <div style="flex:1;"><div style="font-size:13px;font-weight:700;color:var(--lp);">API Not Connected</div><div style="font-size:11px;color:var(--text3);margin-top:1px;">Add your API key to activate live payments across MTN, Airtel, VISA, and Bank Transfer</div></div>
-          <button onclick="showToast('Setup: Add lp_live_xxx API key from solidlinkpay.com')" style="background:rgba(232,71,10,.12);border:1px solid rgba(232,71,10,.3);color:var(--lp);padding:8px 14px;border-radius:9px;font-size:12px;font-weight:700;cursor:pointer;">Setup →</button>
-        </div>
-        <div style="margin-top:18px;">
-          <div class="sec-head"><h3>Recent Transactions</h3></div>
-          <div class="card" style="padding:0 16px;">
-            <div class="tx-item"><div class="tx-ico in">💰</div><div style="flex:1;"><div class="tx-name">Disbursement: Milestone 3</div><div class="tx-meta">LinkPay Rails · Mar 12 · LP-00415</div><span class="tx-badge txb-ok">Confirmed</span></div><div class="tx-amt tx-in">+$820</div></div>
-            <div class="tx-item"><div class="tx-ico out">⬆️</div><div style="flex:1;"><div class="tx-name">Funded: Flood Warning DAO</div><div class="tx-meta">MTN MoMo · Mar 14 · LP-00419</div><span class="tx-badge txb-ok">Confirmed</span></div><div class="tx-amt tx-out">−$500</div></div>
-            <div class="tx-item"><div class="tx-ico pend">⏳</div><div style="flex:1;"><div class="tx-name">Funded: Malaria DAO Ask</div><div class="tx-meta">Airtel Money · Mar 15 · LP-00422</div><span class="tx-badge txb-pend">Pending</span></div><div class="tx-amt tx-out">−$250</div></div>
-            <div class="tx-item"><div class="tx-ico in">💰</div><div style="flex:1;"><div class="tx-name">Deposit via VISA</div><div class="tx-meta">Card ••4242 · Mar 8 · LP-00398</div><span class="tx-badge txb-ok">Confirmed</span></div><div class="tx-amt tx-in">+$1,000</div></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- ══ MATCH PAGE ══ -->
-      <div id="page-match" class="page">
-        <div class="page-header"><div class="ai-tag">✨ AI-Powered Matching</div><h2>Smart Funding Match</h2><p>Connect projects with aligned funders by geography, focus area, and impact metrics.</p></div>
-        <div class="mode-toggle"><button class="mode-btn on" id="mb-proj" onclick="matchMode('proj')">🎯 Find Projects</button><button class="mode-btn" id="mb-fund" onclick="matchMode('fund')">👥 Find Funders</button></div>
-        <div id="match-proj">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;"><div class="scroll-x" style="gap:8px;"><div class="chip on">All Issues</div><div class="chip">Climate</div><div class="chip">Health</div><div class="chip">Research</div></div><div style="text-align:right;padding-left:16px;flex-shrink:0;"><div style="font-size:22px;font-weight:800;color:var(--primary);">12</div><div style="font-size:11px;color:var(--text2);">Matches</div></div></div>
-          <div class="grid-3" style="margin-bottom:20px;">
-            <div class="match-card"><div class="mc-img">🌿<div class="mc-badge">✨ 94%</div></div><div class="mc-body"><span class="badge b-s" style="margin-bottom:8px;">Disease Prevention</span><div class="mc-title">West Africa Malaria Genomic Surveillance Network</div><div class="mc-meta"><span class="meta-i">📍 Ghana, Nigeria</span><span class="meta-i amt">💵 200K</span></div><div class="mc-foot"><div style="display:flex;align-items:center;gap:6px;"><div class="avatar" style="width:28px;height:28px;font-size:10px;">KA</div><span style="font-size:12px;color:var(--text2);">Kwame Asante</span></div><button class="like-btn" onclick="this.classList.toggle('liked');this.textContent=this.classList.contains('liked')?'❤️':'🤍'">🤍</button></div></div></div>
-            <div class="match-card"><div class="mc-img">🌱<div class="mc-badge">✨ 87%</div></div><div class="mc-body"><span class="badge b-g" style="margin-bottom:8px;">Climate</span><div class="mc-title">Southern Africa Agroforestry Carbon Index</div><div class="mc-meta"><span class="meta-i">📍 Zimbabwe, Zambia</span><span class="meta-i amt">💵 140K</span></div><div class="mc-foot"><div style="display:flex;align-items:center;gap:6px;"><div class="avatar" style="width:28px;height:28px;font-size:10px;">ZM</div><span style="font-size:12px;color:var(--text2);">Zanele Mokoena</span></div><button class="like-btn" onclick="this.classList.toggle('liked');this.textContent=this.classList.contains('liked')?'❤️':'🤍'">🤍</button></div></div></div>
-            <div class="match-card"><div class="mc-img">💧<div class="mc-badge">✨ 81%</div></div><div class="mc-body"><span class="badge b-p" style="margin-bottom:8px;">Water Security</span><div class="mc-title">Sahel Community Water Access Monitoring Grid</div><div class="mc-meta"><span class="meta-i">📍 Mali, Niger</span><span class="meta-i amt">💵 95K</span></div><div class="mc-foot"><div style="display:flex;align-items:center;gap:6px;"><div class="avatar" style="width:28px;height:28px;font-size:10px;">OD</div><span style="font-size:12px;color:var(--text2);">Oumar Diallo</span></div><button class="like-btn" onclick="this.classList.toggle('liked');this.textContent=this.classList.contains('liked')?'❤️':'🤍'">🤍</button></div></div></div>
-          </div>
-          <div class="sec-head"><h3>🔔 Funding Calls & Solicitations</h3></div>
-          <div class="grid-3">
-            <div class="fcc"><div style="display:flex;justify-content:space-between;margin-bottom:8px;"><span class="badge b-e">RFP</span><span class="badge b-e">⚠ Urgent</span></div><div class="fcc-title">Pandemic Preparedness Genomic Surveillance</div><div class="fcc-org">🏢 CEPI</div><div class="fcc-tags"><div class="fcc-tag">Disease Surveillance</div><div class="fcc-tag">Genomics</div></div><div style="font-size:12px;color:var(--text);margin-bottom:8px;">💵 $200K–$2M &nbsp;·&nbsp; <span style="color:var(--error);">📅 12d left</span></div><div class="fcc-src"><span>via WHO Portal</span><button onclick="showToast('Convert to Sub-DAO Proposal')" style="background:rgba(232,71,10,.12);border:1px solid rgba(232,71,10,.3);color:var(--lp);padding:4px 9px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;">⚡ Sub-DAO</button></div></div>
-            <div class="fcc"><div style="margin-bottom:8px;"><span class="badge b-g">Grant</span></div><div class="fcc-title">Climate Adaptation Innovation Fund — East Africa</div><div class="fcc-org">🏢 African Development Bank</div><div class="fcc-tags"><div class="fcc-tag">Climate Adaptation</div><div class="fcc-tag">Water</div></div><div style="font-size:12px;color:var(--text);margin-bottom:8px;">💵 $100K–$1.5M &nbsp;·&nbsp; 📅 45d left</div><div class="fcc-src"><span>via AfDB</span><button onclick="showToast('Convert to Sub-DAO Proposal')" style="background:rgba(232,71,10,.12);border:1px solid rgba(232,71,10,.3);color:var(--lp);padding:4px 9px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;">⚡ Sub-DAO</button></div></div>
-            <div class="fcc"><div style="margin-bottom:8px;"><span class="badge b-p">Tender</span></div><div class="fcc-title">Digital Health Infrastructure — Francophone Africa</div><div class="fcc-org">🏢 Gavi, The Vaccine Alliance</div><div class="fcc-tags"><div class="fcc-tag">Digital Health</div><div class="fcc-tag">Vaccines</div></div><div style="font-size:12px;color:var(--text);margin-bottom:8px;">💵 $500K–$5M &nbsp;·&nbsp; 📅 38d left</div><div class="fcc-src"><span>via Gavi</span><button onclick="showToast('Convert to Sub-DAO Proposal')" style="background:rgba(232,71,10,.12);border:1px solid rgba(232,71,10,.3);color:var(--lp);padding:4px 9px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;">⚡ Sub-DAO</button></div></div>
-          </div>
-        </div>
-        <div id="match-fund" style="display:none;">
-          <button class="btn btn-p" style="margin-bottom:18px;" onclick="showToast('Upload project for funder matching')">➕ Upload New Project</button>
-          <div class="grid-2">
-            <div style="padding:18px;background:var(--card);border:1px solid var(--border);border-radius:16px;"><div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;"><div class="avatar" style="width:46px;height:46px;font-size:14px;">WF</div><div style="flex:1;"><div style="font-size:15px;font-weight:700;">World Fund for Nature</div><div style="font-size:12px;color:var(--text2);">Geneva, Switzerland</div></div><div style="padding:5px 10px;border-radius:10px;background:#10B981;font-size:13px;font-weight:700;color:#fff;">92%</div></div><div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;"><div style="background:rgba(45,179,160,.1);padding:3px 9px;border-radius:7px;font-size:11px;color:var(--primary);">✓ East Africa</div><div style="background:rgba(45,179,160,.1);padding:3px 9px;border-radius:7px;font-size:11px;color:var(--primary);">✓ Climate</div><div style="background:rgba(45,179,160,.1);padding:3px 9px;border-radius:7px;font-size:11px;color:var(--primary);">✓ $50K–$500K</div></div><button class="btn btn-p" style="width:100%;" onclick="this.textContent='✓ Request Sent';this.style.background='var(--success)'">⚡ Connect</button></div>
-            <div style="padding:18px;background:var(--card);border:1px solid var(--border);border-radius:16px;"><div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;"><div class="avatar" style="width:46px;height:46px;font-size:14px;">AF</div><div style="flex:1;"><div style="font-size:15px;font-weight:700;">Africa Health Foundation</div><div style="font-size:12px;color:var(--text2);">Nairobi, Kenya</div></div><div style="padding:5px 10px;border-radius:10px;background:#F59E0B;font-size:13px;font-weight:700;color:#fff;">78%</div></div><div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;"><div style="background:rgba(45,179,160,.1);padding:3px 9px;border-radius:7px;font-size:11px;color:var(--primary);">✓ Health</div><div style="background:rgba(45,179,160,.1);padding:3px 9px;border-radius:7px;font-size:11px;color:var(--primary);">✓ West Africa</div></div><button class="btn btn-p" style="width:100%;" onclick="this.textContent='✓ Request Sent';this.style.background='var(--success)'">⚡ Connect</button></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- ══ DAO PAGE ══ -->
-      <div id="page-dao" class="page">
-        <div class="page-header"><h2>DAO Governance</h2><p>Community-driven decision making for African science funding.</p></div>
-        <div class="grid-4" style="margin-bottom:20px;">
-          <div class="stat-card"><div class="icon">🏛</div><div class="val">8</div><div class="lbl">Total DAOs</div></div>
-          <div class="stat-card"><div class="icon">💰</div><div class="val">$3.2M</div><div class="lbl">Capital raised</div><div class="change">↑ +12.4% this quarter</div></div>
-          <div class="stat-card"><div class="icon">🟢</div><div class="val">5</div><div class="lbl">Active DAOs</div></div>
-          <div class="stat-card"><div class="icon">✅</div><div class="val">3</div><div class="lbl">Completed</div></div>
-        </div>
-        <div style="display:grid;grid-template-columns:1fr 300px;gap:20px;align-items:start;">
-          <div>
-            <div class="dao-subtabs"><div class="dao-stab on" onclick="daoSubTab(this,'dao-list')">🏛 DAOs</div><div class="dao-stab" onclick="daoSubTab(this,'dao-treasury')">📊 Treasury</div></div>
-            <div id="dao-list">
-              <div class="grid-2">
-                <div class="dao-card"><div class="dc-img">🌊</div><div class="dc-body"><div style="display:flex;gap:5px;margin-bottom:8px;"><span class="badge b-p">Proposal</span><span class="badge b-s">🟢 Active</span></div><div class="dc-name">East Africa Climate Adaptation DAO</div><div class="dc-desc">Coordinating flood, drought, and water security projects across the Great Lakes region.</div><div class="dc-meta"><div class="dc-m">🏛 Multi-sig</div><div class="dc-m">👥 284</div><div class="dc-m">💰 $1.8M</div></div><div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text2);margin-bottom:4px;"><span>Disbursement</span><span style="color:var(--primary);font-weight:700;">64%</span></div><div class="prog"><div class="prog-fill" style="width:64%"></div></div><div class="dc-foot"><div style="display:flex;align-items:center;gap:8px;"><div class="avatar" style="width:28px;height:28px;font-size:9px;">AM</div><div style="font-size:12px;font-weight:600;">Amina Mwangi</div></div><div class="chain-badge">Polygon</div></div></div></div>
-                <div class="dao-card"><div class="dc-img">💊</div><div class="dc-body"><div style="display:flex;gap:5px;margin-bottom:8px;"><span class="badge b-g">Ask</span><span class="badge b-s">🟢 Active</span></div><div class="dc-name">West Africa Health Surveillance DAO</div><div class="dc-desc">Real-time disease surveillance with community health workers across 6 countries.</div><div class="dc-meta"><div class="dc-m">🏛 Quadratic</div><div class="dc-m">👥 156</div><div class="dc-m">💰 $940K</div></div><div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text2);margin-bottom:4px;"><span>Disbursement</span><span style="color:var(--primary);font-weight:700;">47%</span></div><div class="prog"><div class="prog-fill" style="width:47%"></div></div><div class="dc-foot"><div style="display:flex;align-items:center;gap:8px;"><div class="avatar" style="width:28px;height:28px;font-size:9px;">KA</div><div style="font-size:12px;font-weight:600;">Kwame Asante</div></div><div class="chain-badge">Celo</div></div></div></div>
-                <div class="dao-card"><div class="dc-img">🌱</div><div class="dc-body"><div style="display:flex;gap:5px;margin-bottom:8px;"><span class="badge b-p">Proposal</span><span class="badge b-s">🟢 Active</span></div><div class="dc-name">Sahel Agroforestry Carbon DAO</div><div class="dc-desc">Carbon sequestration measurement and certification for agroforestry projects.</div><div class="dc-meta"><div class="dc-m">🏛 Token-weighted</div><div class="dc-m">👥 98</div><div class="dc-m">💰 $320K</div></div><div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text2);margin-bottom:4px;"><span>Disbursement</span><span style="color:var(--primary);font-weight:700;">22%</span></div><div class="prog"><div class="prog-fill" style="width:22%"></div></div><div class="dc-foot"><div style="display:flex;align-items:center;gap:8px;"><div class="avatar" style="width:28px;height:28px;font-size:9px;">ZM</div><div style="font-size:12px;font-weight:600;">Zanele Mokoena</div></div><div class="chain-badge">Polygon</div></div></div></div>
-                <div class="dao-card"><div class="dc-img">💧</div><div class="dc-body"><div style="display:flex;gap:5px;margin-bottom:8px;"><span class="badge b-p">Proposal</span><span class="badge" style="background:rgba(45,179,160,.1);color:var(--primary);">✅ Completed</span></div><div class="dc-name">Niger Basin Desertification Reversal</div><div class="dc-desc">Sahel desertification reversal pilot — completed all 5 milestones.</div><div class="dc-meta"><div class="dc-m">🏛 Multi-sig</div><div class="dc-m">👥 212</div><div class="dc-m">💰 $3.2M</div></div><div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text2);margin-bottom:4px;"><span>Disbursement</span><span style="color:var(--success);font-weight:700;">100% ✓</span></div><div class="prog"><div class="prog-fill" style="width:100%"></div></div><div class="dc-foot"><div style="display:flex;align-items:center;gap:8px;"><div class="avatar" style="width:28px;height:28px;font-size:9px;">OD</div><div style="font-size:12px;font-weight:600;">Oumar Diallo</div></div><div class="chain-badge">Dissolved</div></div></div></div>
-              </div>
-            </div>
-            <div id="dao-treasury" style="display:none;">
-              <div style="padding:20px;background:var(--card2);border:1px solid var(--border);border-radius:16px;text-align:center;margin-bottom:16px;"><div style="font-size:13px;color:var(--text2);margin-bottom:4px;">Total Treasury</div><div style="font-size:38px;font-weight:800;margin-bottom:8px;">$3.24M</div><div style="font-size:13px;color:var(--success);">📈 +12.4% this quarter</div></div>
-              <div class="card" style="padding:0 16px;"><div class="alloc-item"><div class="alloc-dot" style="background:var(--primary)"></div><div class="alloc-lbl">Health & Disease</div><div class="alloc-val">$410,000</div><div class="alloc-pct">39%</div></div><div class="alloc-item"><div class="alloc-dot" style="background:var(--accent)"></div><div class="alloc-lbl">Climate & Environment</div><div class="alloc-val">$320,000</div><div class="alloc-pct">30%</div></div><div class="alloc-item"><div class="alloc-dot" style="background:var(--golden)"></div><div class="alloc-lbl">Water & Infrastructure</div><div class="alloc-val">$170,000</div><div class="alloc-pct">16%</div></div><div class="alloc-item"><div class="alloc-dot" style="background:var(--success)"></div><div class="alloc-lbl">One Health</div><div class="alloc-val">$170,000</div><div class="alloc-pct">15%</div></div></div>
-              <div style="display:flex;gap:10px;margin-top:14px;"><button class="btn btn-p" style="flex:1;" onclick="showToast('Economics Dashboard')">📊 Economics Dashboard</button><button class="btn btn-o" style="flex:1;" onclick="showToast('Submit Treasury Proposal')">Submit Proposal</button></div>
-            </div>
-          </div>
-          <div>
-            <div class="status-panel" style="margin-bottom:14px;">
-              <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;"><span style="font-size:20px;">🛡</span><div style="flex:1;"><div style="font-size:14px;font-weight:700;">Your DAO Status</div><div style="font-size:12px;color:var(--text2);">Active Member</div></div><div style="background:var(--primary);color:#0A1612;padding:4px 11px;border-radius:9px;font-size:11px;font-weight:700;">Level 3</div></div>
-              <div style="display:flex;"><div style="flex:1;text-align:center;"><div style="font-size:16px;font-weight:700;color:var(--primary);">1,250</div><div style="font-size:10px;color:var(--text2);margin-top:2px;">Gov. Credits</div></div><div style="width:1px;background:var(--border);margin:0 8px;"></div><div style="flex:1;text-align:center;"><div style="font-size:16px;font-weight:700;color:var(--primary);">$5,200</div><div style="font-size:10px;color:var(--text2);margin-top:2px;">Contributed</div></div><div style="width:1px;background:var(--border);margin:0 8px;"></div><div style="flex:1;text-align:center;"><div style="font-size:16px;font-weight:700;color:var(--primary);">47</div><div style="font-size:10px;color:var(--text2);margin-top:2px;">Votes Cast</div></div></div>
-            </div>
-            <div style="padding:16px;background:var(--card);border:1px solid rgba(45,179,160,.25);border-radius:14px;cursor:pointer;margin-bottom:14px;" onclick="goTo('intel')">
-              <div style="display:flex;align-items:center;gap:10px;"><div style="width:38px;height:38px;border-radius:10px;background:rgba(45,179,160,.12);display:flex;align-items:center;justify-content:center;font-size:18px;">🧠</div><div style="flex:1;"><div style="font-size:14px;font-weight:700;">Intelligence Layer</div><div style="font-size:12px;color:var(--text2);">Pattern detection & risk signals</div></div><div style="display:flex;align-items:center;gap:3px;background:rgba(239,83,80,.12);padding:3px 8px;border-radius:7px;font-size:10px;font-weight:700;color:var(--error);">⚠ 3</div></div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- ══ INTELLIGENCE PAGE ══ -->
-      <div id="page-intel" class="page">
-        <div class="page-header"><h2>Intelligence Layer</h2><p>AI-aggregated patterns, risk signals & early-warning alerts from field data across Africa.</p></div>
-        <div class="intel-banner">
-          <div class="grid-4">
-            <div style="text-align:center;"><div style="font-size:24px;font-weight:800;color:var(--primary);">342</div><div style="font-size:12px;color:var(--text2);">Patterns detected</div></div>
-            <div style="text-align:center;"><div style="font-size:24px;font-weight:800;color:var(--error);">3</div><div style="font-size:12px;color:var(--text2);">Critical alerts</div></div>
-            <div style="text-align:center;"><div style="font-size:24px;font-weight:800;color:var(--primary);">7,728</div><div style="font-size:12px;color:var(--text2);">Data points today</div></div>
-            <div style="text-align:center;"><div style="font-size:24px;font-weight:800;color:var(--primary);">24</div><div style="font-size:12px;color:var(--text2);">Regions covered</div></div>
-          </div>
-        </div>
-        <div class="intel-tabs"><div class="itab on" onclick="intelTab(this,'it-pat')">📊 Patterns</div><div class="itab" onclick="intelTab(this,'it-risk')">⚠️ Risk Signals</div><div class="itab" onclick="intelTab(this,'it-alert')">🚨 Alerts</div><div class="itab" onclick="intelTab(this,'it-src')">🗄 Sources</div></div>
-        <div id="it-pat">
-          <div class="grid-2">
-            <div class="pattern-card"><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;"><div class="pc-title" style="flex:1;padding-right:10px;">Increased Vaccine Hesitancy in Rural East Africa</div><span class="badge b-g">↑ Rising</span></div><div style="font-size:13px;color:var(--text2);line-height:1.5;margin-bottom:10px;">23% increase in hesitancy mentions across rural Kenya, Tanzania, Uganda over 60 days. Correlates with local misinformation campaigns.</div><div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text2);margin-bottom:4px;"><span>Confidence</span><span style="color:var(--primary);font-weight:700;">87%</span></div><div class="conf-bar"><div class="conf-fill" style="width:87%"></div></div><div style="display:flex;flex-wrap:wrap;gap:5px;margin:10px 0;"><div class="pm-tag">East Africa</div><div class="pm-tag">Public Health</div></div><div class="src-row" style="grid-template-columns:repeat(4,1fr);"><div class="src-item"><div class="src-val">45</div><div class="src-lbl">DAO</div></div><div class="src-item"><div class="src-val">189</div><div class="src-lbl">Field</div></div><div class="src-item"><div class="src-val">23</div><div class="src-lbl">Research</div></div><div class="src-item"><div class="src-val">85</div><div class="src-lbl">Discussion</div></div></div></div>
-            <div class="pattern-card"><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;"><div class="pc-title" style="flex:1;padding-right:10px;">Drought-Driven Migration Corridors — Sahel</div><span class="badge b-e">↑ Critical</span></div><div style="font-size:13px;color:var(--text2);line-height:1.5;margin-bottom:10px;">Three distinct corridors identified with increased movement toward coastal urban centers, cross-referenced with 312 practitioner reports.</div><div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text2);margin-bottom:4px;"><span>Confidence</span><span style="color:var(--primary);font-weight:700;">92%</span></div><div class="conf-bar"><div class="conf-fill" style="width:92%;background:linear-gradient(90deg,var(--primary),var(--accent));"></div></div><div style="display:flex;flex-wrap:wrap;gap:5px;margin:10px 0;"><div class="pm-tag">West Africa</div><div class="pm-tag">Sahel</div><div class="pm-tag">Climate</div></div><div class="src-row" style="grid-template-columns:repeat(4,1fr);"><div class="src-item"><div class="src-val">78</div><div class="src-lbl">DAO</div></div><div class="src-item"><div class="src-val">312</div><div class="src-lbl">Field</div></div><div class="src-item"><div class="src-val">89</div><div class="src-lbl">Research</div></div><div class="src-item"><div class="src-val">88</div><div class="src-lbl">Discussion</div></div></div></div>
-          </div>
-        </div>
-        <div id="it-risk" style="display:none;">
-          <div class="grid-2">
-            <div class="risk-card" style="border-color:var(--error);"><div style="display:flex;justify-content:space-between;margin-bottom:8px;"><span style="font-size:10px;font-weight:800;padding:3px 8px;border-radius:5px;background:rgba(239,83,80,.15);color:var(--error);">CRITICAL</span><span style="font-size:11px;color:var(--text3);">2h ago</span></div><div style="font-size:14px;font-weight:700;margin-bottom:5px;">Cholera Outbreak Signal — Eastern DRC</div><div style="font-size:13px;color:var(--text2);line-height:1.5;margin-bottom:10px;">Multiple community health worker reports indicate suspected cholera cases near Goma. 12,000 at risk. Confidence: 89%.</div><div style="display:flex;flex-wrap:wrap;gap:5px;"><div style="background:rgba(255,255,255,.06);padding:3px 8px;border-radius:5px;font-size:11px;color:var(--text2);">Watery diarrhea surge</div><div style="background:rgba(255,255,255,.06);padding:3px 8px;border-radius:5px;font-size:11px;color:var(--text2);">Water contamination</div></div></div>
-            <div class="risk-card" style="border-color:#FF8C42;"><div style="display:flex;justify-content:space-between;margin-bottom:8px;"><span style="font-size:10px;font-weight:800;padding:3px 8px;border-radius:5px;background:rgba(255,140,66,.15);color:#FF8C42;">HIGH</span><span style="font-size:11px;color:var(--text3);">6h ago</span></div><div style="font-size:14px;font-weight:700;margin-bottom:5px;">Food Security Deterioration — Northern Mali</div><div style="font-size:13px;color:var(--text2);line-height:1.5;margin-bottom:10px;">Accelerating food insecurity following failed rains. Field practitioners confirm market price spikes and displacement signals. Confidence: 76%.</div><div style="display:flex;flex-wrap:wrap;gap:5px;"><div style="background:rgba(255,255,255,.06);padding:3px 8px;border-radius:5px;font-size:11px;color:var(--text2);">Crop failure</div><div style="background:rgba(255,255,255,.06);padding:3px 8px;border-radius:5px;font-size:11px;color:var(--text2);">Market price spikes</div></div></div>
-          </div>
-        </div>
-        <div id="it-alert" style="display:none;">
-          <div style="display:flex;flex-direction:column;gap:12px;">
-            <div class="alert-card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;"><span style="font-size:10px;font-weight:800;padding:3px 9px;border-radius:6px;" class="urg-im">🚨 IMMEDIATE</span><span style="font-size:11px;color:var(--text3);">Disease</span></div><div style="font-size:15px;font-weight:700;margin-bottom:5px;">Suspected Cholera Outbreak — DRC Border Region</div><div style="font-size:13px;color:var(--text2);line-height:1.5;margin-bottom:10px;">Early-warning signals from 3 data sources indicate developing outbreak. 12,000+ at risk within 72 hours without intervention.</div><div style="display:flex;flex-direction:column;gap:5px;"><div style="display:flex;gap:6px;font-size:13px;color:var(--text2);"><div style="width:5px;height:5px;border-radius:50%;background:var(--primary);margin-top:6px;flex-shrink:0;"></div>Deploy emergency water purification to Goma camps</div><div style="display:flex;gap:6px;font-size:13px;color:var(--text2);"><div style="width:5px;height:5px;border-radius:50%;background:var(--primary);margin-top:6px;flex-shrink:0;"></div>Activate Cholera Response Sub-DAO immediately</div></div></div>
-            <div class="alert-card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;"><span style="font-size:10px;font-weight:800;padding:3px 9px;border-radius:6px;" class="urg-dev">⚡ DEVELOPING</span><span style="font-size:11px;color:var(--text3);">Climate</span></div><div style="font-size:15px;font-weight:700;margin-bottom:5px;">Drought-Triggered Food Crisis — Sahel Region</div><div style="font-size:13px;color:var(--text2);line-height:1.5;">Satellite + ground truth confirms accelerating food insecurity across Mali, Niger, Burkina Faso.</div></div>
-          </div>
-        </div>
-        <div id="it-src" style="display:none;">
-          <div class="card" style="padding:18px;"><div style="font-size:15px;font-weight:700;margin-bottom:14px;">Data Source Metrics</div><div class="grid-2"><div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);"><span style="font-size:13px;color:var(--text2);">DAO Reports Processed</span><span style="font-size:16px;font-weight:700;color:var(--primary);">1,247</span></div><div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);"><span style="font-size:13px;color:var(--text2);">Field Practitioner Uploads</span><span style="font-size:16px;font-weight:700;color:var(--primary);">3,891</span></div><div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);"><span style="font-size:13px;color:var(--text2);">Research Activities</span><span style="font-size:16px;font-weight:700;color:var(--primary);">456</span></div><div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;"><span style="font-size:13px;color:var(--text2);">Discussion Signals</span><span style="font-size:16px;font-weight:700;color:var(--primary);">2,134</span></div></div></div>
-        </div>
-      </div>
-
-      <!-- ══ COMMUNITY PAGE ══ -->
-      <div id="page-community" class="page">
-        <div class="page-header"><h2>Community</h2><p>Researchers, funders & practitioners collaborating across Africa.</p></div>
-        <div style="display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap;">
-          <div style="flex:1;display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--border);border-radius:11px;padding:10px 14px;min-width:200px;"><span style="font-size:15px;">🔍</span><input class="input" style="background:none;border:none;padding:0;" placeholder="Search by name, expertise, country…"/></div>
-          <div class="scroll-x" style="gap:8px;align-items:center;"><div class="chip on" onclick="commTab(this,'cf')">Feed</div><div class="chip" onclick="commTab(this,'cm')">Members</div><div class="chip" onclick="commTab(this,'cf')">Researchers</div><div class="chip" onclick="commTab(this,'cf')">Funders</div></div>
-        </div>
-        <div id="cf">
-          <div class="grid-sidebar">
-            <div style="display:flex;flex-direction:column;gap:14px;">
-              <div class="feed-post"><div class="fp-head"><div class="fp-ava">KA</div><div style="flex:1;"><div class="fp-name">Dr. Kwame Asante</div><div class="fp-meta">Researcher · University of Ghana · 2h ago</div></div><span class="badge b-p">Researcher</span></div><div class="fp-content">Just completed our field assessment in the Northern Region. The malaria surveillance system is showing promising results — early detection rates up by 40% compared to last year. Excited to share more findings! 🦟📊</div><div class="fp-media">🏥</div><div class="fp-actions"><button class="fp-act" onclick="likePost(this)">🤍 <span>47</span></button><button class="fp-act">💬 <span>2</span></button><button class="fp-act">↗ Share</button></div><div class="fp-comments"><div style="display:flex;gap:8px;"><div class="fc-ava">FE</div><div class="fc-bubble"><div class="fc-name">Fatima El-Amin</div><div class="fc-text">Incredible progress! Would love to discuss funding opportunities for scaling this.</div></div></div></div></div>
-              <div class="feed-post"><div class="fp-head"><div class="fp-ava">ZM</div><div style="flex:1;"><div class="fp-name">Zanele Mokoena</div><div class="fp-meta">Field Expert · Harare Institute · 5h ago</div></div><span class="badge b-s">Field Expert</span></div><div class="fp-content">The Sahel agroforestry pilot just hit its 3rd milestone ✅ Planting density up 34% vs baseline. Seeing real carbon sequestration signals in the data. This is what NexTerra-funded science looks like on the ground 🌱</div><div class="fp-actions"><button class="fp-act" onclick="likePost(this)">🤍 <span>63</span></button><button class="fp-act">💬 <span>8</span></button><button class="fp-act">↗ Share</button></div></div>
-              <div class="feed-post"><div class="fp-head"><div class="fp-ava">AM</div><div style="flex:1;"><div class="fp-name">Amina Mwangi</div><div class="fp-meta">Climate Researcher · Kenya · 1d ago</div></div><span class="badge b-g">DAO Lead</span></div><div class="fp-content">Our DAO just passed Proposal #NXT-047 🎉 East Africa Flood Early Warning System moves to funding phase. Thank you to the 1,842 community members who voted. This is decentralized science at scale. 🌍</div><div class="fp-actions"><button class="fp-act" onclick="likePost(this)">🤍 <span>128</span></button><button class="fp-act">💬 <span>24</span></button><button class="fp-act">↗ Share</button></div></div>
-            </div>
-            <div>
-              <div style="font-size:15px;font-weight:700;margin-bottom:12px;">Suggested Members</div>
-              <div style="display:flex;flex-direction:column;gap:10px;">
-                <div class="user-card"><div class="uc-ava">AM</div><div style="flex:1;"><div style="font-size:14px;font-weight:700;">Amina Mwangi</div><div style="font-size:11px;color:var(--text2);">Climate Researcher · Kenya</div><div class="uc-exp"><div class="exp-tag">Climate</div><div class="exp-tag">DAO Lead</div></div></div><div style="font-size:18px;font-weight:800;color:var(--primary);">94</div></div>
-                <div class="user-card"><div class="uc-ava">KA</div><div style="flex:1;"><div style="font-size:14px;font-weight:700;">Dr. Kwame Asante</div><div style="font-size:11px;color:var(--text2);">Epidemiologist · Ghana</div><div class="uc-exp"><div class="exp-tag">Malaria</div><div class="exp-tag">Genomics</div></div></div><div style="font-size:18px;font-weight:800;color:var(--primary);">91</div></div>
-                <div class="user-card"><div class="uc-ava">ZM</div><div style="flex:1;"><div style="font-size:14px;font-weight:700;">Zanele Mokoena</div><div style="font-size:11px;color:var(--text2);">Agroforestry · Zimbabwe</div><div class="uc-exp"><div class="exp-tag">Forests</div><div class="exp-tag">Carbon</div></div></div><div style="font-size:18px;font-weight:800;color:var(--primary);">88</div></div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div id="cm" style="display:none;">
-          <div class="grid-3" style="gap:12px;">
-            <div class="user-card" style="flex-direction:column;align-items:flex-start;gap:10px;"><div style="display:flex;align-items:center;gap:10px;width:100%;"><div class="uc-ava">AM</div><div style="flex:1;"><div style="font-size:14px;font-weight:700;">Amina Mwangi</div><div style="font-size:11px;color:var(--text2);">DAO Lead · Kenya</div></div><div style="font-size:20px;font-weight:800;color:var(--primary);">94</div></div><div class="uc-exp"><div class="exp-tag">Climate</div><div class="exp-tag">Field Work</div><div class="exp-tag">DAO</div></div><button class="btn btn-o" style="width:100%;padding:8px;" onclick="showToast('Connect request sent to Amina Mwangi')">Connect</button></div>
-            <div class="user-card" style="flex-direction:column;align-items:flex-start;gap:10px;"><div style="display:flex;align-items:center;gap:10px;width:100%;"><div class="uc-ava">KA</div><div style="flex:1;"><div style="font-size:14px;font-weight:700;">Dr. Kwame Asante</div><div style="font-size:11px;color:var(--text2);">Epidemiologist · Ghana</div></div><div style="font-size:20px;font-weight:800;color:var(--primary);">91</div></div><div class="uc-exp"><div class="exp-tag">Malaria</div><div class="exp-tag">Genomics</div></div><button class="btn btn-o" style="width:100%;padding:8px;" onclick="showToast('Connect request sent')">Connect</button></div>
-            <div class="user-card" style="flex-direction:column;align-items:flex-start;gap:10px;"><div style="display:flex;align-items:center;gap:10px;width:100%;"><div class="uc-ava">ZM</div><div style="flex:1;"><div style="font-size:14px;font-weight:700;">Zanele Mokoena</div><div style="font-size:11px;color:var(--text2);">Agroforestry · Zimbabwe</div></div><div style="font-size:20px;font-weight:800;color:var(--primary);">88</div></div><div class="uc-exp"><div class="exp-tag">Forests</div><div class="exp-tag">Carbon</div></div><button class="btn btn-o" style="width:100%;padding:8px;" onclick="showToast('Connect request sent')">Connect</button></div>
-            <div class="user-card" style="flex-direction:column;align-items:flex-start;gap:10px;"><div style="display:flex;align-items:center;gap:10px;width:100%;"><div class="uc-ava">FO</div><div style="flex:1;"><div style="font-size:14px;font-weight:700;">Fatima Ouedraogo</div><div style="font-size:11px;color:var(--text2);">Public Health · DRC</div></div><div style="font-size:20px;font-weight:800;color:var(--primary);">85</div></div><div class="uc-exp"><div class="exp-tag">Cholera</div><div class="exp-tag">Field</div></div><button class="btn btn-o" style="width:100%;padding:8px;" onclick="showToast('Connect request sent')">Connect</button></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- ══ PROFILE PAGE ══ -->
-      <div id="page-profile" class="page">
-        <div class="profile-hero">
-          <div class="profile-ava">AM</div>
-          <div style="flex:1;">
-            <div class="profile-name">Amina Mwangi</div>
-            <div class="profile-role">Climate Researcher · DAO Lead</div>
-            <div class="profile-affil">University of Nairobi · Kenya</div>
-            <div class="profile-loc">📍 Nairobi, Kenya &nbsp;·&nbsp; Joined January 2024</div>
-            <div style="display:flex;gap:10px;margin-top:14px;"><button class="btn btn-p" onclick="showToast('Submit Proposal — on-chain governance vote required')">📄 Submit Proposal</button><button class="btn btn-o" onclick="showToast('Submit Ask — urgent field resource request')">❓ Submit Ask</button><button class="btn btn-o" onclick="showToast('Edit Profile')">✏️ Edit</button></div>
-          </div>
-          <div style="text-align:right;"><div style="font-size:12px;color:var(--text3);margin-bottom:4px;">Credibility Score</div><div style="font-size:40px;font-weight:800;color:var(--primary);">91</div><div style="font-size:11px;color:var(--text2);">/ 100 · Highly Credible</div></div>
-        </div>
-        <div class="grid-sidebar">
-          <div>
-            <div class="profile-bio-card" style="margin-bottom:16px;"><div style="font-size:14px;font-weight:700;margin-bottom:8px;">About</div><div style="font-size:14px;color:var(--text2);line-height:1.7;">Dedicated to community-led climate adaptation research across East Africa. Leading the Flood Early Warning DAO and working on translating field knowledge into fundable science. 12 projects funded, 100% milestone compliance.</div></div>
-            <div class="grid-4" style="margin-bottom:16px;">
-              <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;text-align:center;"><div style="font-size:20px;font-weight:800;color:var(--primary);">12</div><div style="font-size:11px;color:var(--text3);margin-top:2px;">Funded</div></div>
-              <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;text-align:center;"><div style="font-size:20px;font-weight:800;color:var(--primary);">47</div><div style="font-size:11px;color:var(--text3);margin-top:2px;">Votes cast</div></div>
-              <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;text-align:center;"><div style="font-size:20px;font-weight:800;color:var(--primary);">34</div><div style="font-size:11px;color:var(--text3);margin-top:2px;">Reviews</div></div>
-              <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;text-align:center;"><div style="font-size:20px;font-weight:800;color:var(--primary);">156</div><div style="font-size:11px;color:var(--text3);margin-top:2px;">Community</div></div>
-            </div>
-            <div class="cred-section">
-              <div style="font-size:15px;font-weight:700;margin-bottom:14px;">Credibility Breakdown</div>
-              <div style="display:flex;gap:16px;align-items:center;margin-bottom:16px;"><div class="cred-circle"><div class="cred-num">91</div><div style="font-size:9px;color:var(--text3);">/ 100</div></div><div style="flex:1;"><div style="font-size:14px;font-weight:700;margin-bottom:3px;">Highly Credible</div><div style="font-size:13px;color:var(--text2);line-height:1.5;">12 funded projects, 100% milestone compliance, 34 peer reviews.</div></div></div>
-              <div class="cm-row"><span class="cm-lbl">Past Funded Work</span><div class="cm-bar"><div class="cm-fill" style="width:92%"></div></div><span class="cm-score">92</span></div>
-              <div class="cm-row"><span class="cm-lbl">DAO Participation</span><div class="cm-bar"><div class="cm-fill" style="width:87%"></div></div><span class="cm-score">87</span></div>
-              <div class="cm-row"><span class="cm-lbl">Reporting Compliance</span><div class="cm-bar"><div class="cm-fill" style="width:95%"></div></div><span class="cm-score">95</span></div>
-              <div class="cm-row"><span class="cm-lbl">Peer Reviews</span><div class="cm-bar"><div class="cm-fill" style="width:88%"></div></div><span class="cm-score">88</span></div>
-            </div>
-          </div>
-          <div>
-            <div style="padding:18px;background:linear-gradient(135deg,#1C1008,#0A1612);border:1px solid rgba(232,71,10,.3);border-radius:16px;margin-bottom:14px;">
-              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;"><svg height="16" viewBox="0 0 220 52" fill="none"><text x="0" y="40" font-family="Syne,Arial" font-weight="900" font-size="42" fill="#fff" letter-spacing="-1">LINK</text><polygon points="108,2 210,2 218,50 116,50" fill="#E8470A"/><text x="118" y="40" font-family="Syne,Arial" font-weight="900" font-size="42" fill="#fff" letter-spacing="-1">PAY</text></svg><button onclick="goTo('fund')" style="background:rgba(232,71,10,.12);border:1px solid rgba(232,71,10,.3);color:var(--lp);padding:5px 10px;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer;">Open →</button></div>
-              <div style="font-size:24px;font-weight:800;">$4,250.00</div>
-              <div style="font-size:11px;color:rgba(255,255,255,.25);font-family:monospace;margin-top:3px;">NXT-0x4a2f...c81d</div>
-            </div>
-            <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden;">
-              <div style="display:flex;align-items:center;justify-content:space-between;padding:13px 14px;border-bottom:1px solid var(--border);cursor:pointer;" onclick="showToast('Notification Settings')"><span style="font-size:13px;font-weight:600;">🔔 Notifications</span><span style="color:var(--text2);">›</span></div>
-              <div style="display:flex;align-items:center;justify-content:space-between;padding:13px 14px;border-bottom:1px solid var(--border);cursor:pointer;" onclick="showToast('KYC/AML Status: Verified ✓')"><span style="font-size:13px;font-weight:600;">🛡 KYC/AML Status</span><span class="badge b-s">Verified</span></div>
-              <div style="display:flex;align-items:center;justify-content:space-between;padding:13px 14px;border-bottom:1px solid var(--border);cursor:pointer;" onclick="goTo('intel')"><span style="font-size:13px;font-weight:600;">🧠 Intelligence Access</span><span style="color:var(--text2);">›</span></div>
-              <div style="display:flex;align-items:center;justify-content:space-between;padding:13px 14px;cursor:pointer;" onclick="showToast('My Research — field posts, datasets, publications')"><span style="font-size:13px;font-weight:600;">📚 My Research</span><span style="color:var(--text2);">›</span></div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-    </div><!-- end .content -->
-  </div><!-- end .main -->
-</div><!-- end .shell -->
-
-<!-- MOBILE BOTTOM NAV -->
-<nav class="mobile-nav">
-  <div class="mobile-nav-inner">
-    <button class="mni on" id="mni-vote" onclick="goTo('vote')"><span class="mni-ico">🗳</span><span class="mni-lbl">Vote</span></button>
-    <button class="mni" id="mni-fund" onclick="goTo('fund')"><span class="mni-ico">💰</span><span class="mni-lbl">Fund</span></button>
-    <button class="mni" id="mni-match" onclick="goTo('match')"><span class="mni-ico">✨</span><span class="mni-lbl">Match</span></button>
-    <button class="mni" id="mni-dao" onclick="goTo('dao')"><span class="mni-ico">🏛</span><span class="mni-lbl">DAO</span></button>
-    <button class="mni" id="mni-intel" onclick="goTo('intel')"><span class="mni-ico">🧠</span><span class="mni-lbl">Intel</span></button>
-    <button class="mni" id="mni-community" onclick="goTo('community')"><span class="mni-ico">👥</span><span class="mni-lbl">Community</span></button>
-    <button class="mni" id="mni-profile" onclick="goTo('profile')"><span class="mni-ico">👤</span><span class="mni-lbl">Profile</span></button>
-  </div>
-</nav>
-
-<!-- TOAST -->
-<div class="toast" id="toast"></div>
-
-<script>
-const PAGES=['vote','fund','match','dao','intel','community','profile'];
-const PAGE_TITLES={vote:'Vote on Initiatives',fund:'Fund Projects',match:'Smart Funding Match',dao:'DAO Governance',intel:'Intelligence Layer',community:'Community',profile:'My Profile'};
-
-function goTo(p){
-  document.querySelectorAll('.page').forEach(x=>x.classList.remove('on'));
-  document.querySelectorAll('.snav-item,.mni').forEach(x=>x.classList.remove('on'));
-  const el=document.getElementById('page-'+p);
-  if(el)el.classList.add('on');
-  const sn=document.getElementById('snav-'+p);
-  if(sn)sn.classList.add('on');
-  const mn=document.getElementById('mni-'+p);
-  if(mn)mn.classList.add('on');
-  const tt=document.getElementById('topbar-title');
-  if(tt)tt.textContent=PAGE_TITLES[p]||p;
-  window.scrollTo(0,0);
-  closeSidebar();
-}
-
-function openSidebar(){document.getElementById('sidebar').classList.add('open');document.getElementById('overlay').classList.add('open');}
-function closeSidebar(){document.getElementById('sidebar').classList.remove('open');document.getElementById('overlay').classList.remove('open');}
-
-function filterChips(el){el.closest('.scroll-x,.dao-subtabs,.intel-tabs').querySelectorAll('.chip,.itab,.dao-stab').forEach(c=>c.classList.remove('on'));el.classList.add('on');}
-
-function vote(btn,type){btn.closest('.vote-card').querySelectorAll('.vbtn').forEach(b=>b.style.opacity='.4');btn.style.opacity='1';if(type==='for'){btn.textContent='✓ Voted For';btn.style.background='rgba(45,179,160,.15)';}else{btn.textContent='✗ Voted Against';btn.style.color='var(--error)';}showToast('Vote recorded on-chain ✓');}
-
-function matchMode(m){
-  document.getElementById('mb-proj').classList.toggle('on',m==='proj');
-  document.getElementById('mb-fund').classList.toggle('on',m==='fund');
-  document.getElementById('match-proj').style.display=m==='proj'?'':'none';
-  document.getElementById('match-fund').style.display=m==='fund'?'':'none';
-}
-
-function daoSubTab(el,id){
-  el.closest('.dao-subtabs').querySelectorAll('.dao-stab').forEach(t=>t.classList.remove('on'));el.classList.add('on');
-  ['dao-list','dao-treasury'].forEach(x=>document.getElementById(x).style.display=x===id?'':'none');
-}
-
-function intelTab(el,id){
-  el.closest('.intel-tabs').querySelectorAll('.itab').forEach(t=>t.classList.remove('on'));el.classList.add('on');
-  ['it-pat','it-risk','it-alert','it-src'].forEach(x=>document.getElementById(x).style.display=x===id?'':'none');
-}
-
-function commTab(el,id){
-  ['Feed','Members','Researchers','Funders'].forEach(()=>{});
-  el.closest('.scroll-x').querySelectorAll('.chip').forEach(c=>c.classList.remove('on'));el.classList.add('on');
-  document.getElementById('cf').style.display=id==='cf'?'':'none';
-  document.getElementById('cm').style.display=id==='cm'?'':'none';
-}
-
-function likePost(btn){const span=btn.querySelector('span');const liked=btn.classList.toggle('liked');span.textContent=parseInt(span.textContent)+(liked?1:-1);btn.firstChild.textContent=liked?'❤️':'🤍';}
-
-function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.style.display='block';clearTimeout(t._t);t._t=setTimeout(()=>t.style.display='none',3000);}
-</script>
-</body>
-</html>
+-- ============================================
+-- NEXTERRA SUPABASE DATABASE SETUP
+-- Run this entire file in Supabase SQL Editor
+-- ============================================
+
+-- USERS / PROFILES
+create table if not exists profiles (
+  id uuid references auth.users on delete cascade primary key,
+  full_name text,
+  email text,
+  phone text,
+  country text,
+  affiliation text,
+  role text check (role in ('Researcher','Funder','Practitioner','Institution')),
+  bio text,
+  avatar_initials text,
+  credibility_score integer default 50,
+  governance_credits integer default 0,
+  is_kyc_verified boolean default false,
+  wallet_address text,
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
+);
+alter table profiles enable row level security;
+create policy "Users can view all profiles" on profiles for select using (true);
+create policy "Users can update own profile" on profiles for update using (auth.uid() = id);
+create policy "Users can insert own profile" on profiles for insert with check (auth.uid() = id);
+
+-- PROPOSALS & ASKS
+create table if not exists proposals (
+  id uuid default gen_random_uuid() primary key,
+  title text not null,
+  description text,
+  type text check (type in ('proposal','ask')) default 'proposal',
+  status text check (status in ('voting','funding','active','completed','rejected')) default 'voting',
+  country text,
+  region text,
+  issue_area text,
+  budget numeric default 0,
+  currency text default 'USDC',
+  funding_raised numeric default 0,
+  votes_for integer default 0,
+  votes_against integer default 0,
+  urgency text check (urgency in ('low','medium','high','critical')),
+  submitted_by uuid references profiles(id),
+  linked_dao uuid,
+  days_remaining integer default 7,
+  created_at timestamptz default now()
+);
+alter table proposals enable row level security;
+create policy "Anyone can view proposals" on proposals for select using (true);
+create policy "Authenticated users can submit" on proposals for insert with check (auth.uid() = submitted_by);
+
+-- VOTES
+create table if not exists votes (
+  id uuid default gen_random_uuid() primary key,
+  proposal_id uuid references proposals(id) on delete cascade,
+  user_id uuid references profiles(id) on delete cascade,
+  vote text check (vote in ('for','against')),
+  created_at timestamptz default now(),
+  unique(proposal_id, user_id)
+);
+alter table votes enable row level security;
+create policy "Users can view votes" on votes for select using (true);
+create policy "Authenticated users can vote" on votes for insert with check (auth.uid() = user_id);
+
+-- DAOS
+create table if not exists daos (
+  id uuid default gen_random_uuid() primary key,
+  name text not null,
+  description text,
+  type text check (type in ('proposal','ask')) default 'proposal',
+  status text check (status in ('active','completed','dissolved')) default 'active',
+  governance_structure text default 'Multi-sig',
+  chain_name text default 'Polygon',
+  capital_raised numeric default 0,
+  total_disbursed numeric default 0,
+  member_count integer default 0,
+  leader_id uuid references profiles(id),
+  image_emoji text default '🌍',
+  created_at timestamptz default now()
+);
+alter table daos enable row level security;
+create policy "Anyone can view daos" on daos for select using (true);
+
+-- DAO MEMBERS
+create table if not exists dao_members (
+  id uuid default gen_random_uuid() primary key,
+  dao_id uuid references daos(id) on delete cascade,
+  user_id uuid references profiles(id) on delete cascade,
+  role text default 'member',
+  joined_at timestamptz default now(),
+  unique(dao_id, user_id)
+);
+alter table dao_members enable row level security;
+create policy "Anyone can view dao members" on dao_members for select using (true);
+
+-- TRANSACTIONS / WALLET
+create table if not exists transactions (
+  id uuid default gen_random_uuid() primary key,
+  user_id uuid references profiles(id) on delete cascade,
+  type text check (type in ('deposit','fund','withdraw','disbursement','credit')) not null,
+  amount numeric not null,
+  currency text default 'USD',
+  payment_method text,
+  reference text unique,
+  status text check (status in ('pending','confirmed','failed')) default 'pending',
+  proposal_id uuid references proposals(id),
+  dao_id uuid references daos(id),
+  description text,
+  created_at timestamptz default now()
+);
+alter table transactions enable row level security;
+create policy "Users can view own transactions" on transactions for select using (auth.uid() = user_id);
+create policy "Users can insert own transactions" on transactions for insert with check (auth.uid() = user_id);
+
+-- COMMUNITY POSTS
+create table if not exists posts (
+  id uuid default gen_random_uuid() primary key,
+  user_id uuid references profiles(id) on delete cascade,
+  content text not null,
+  media_emoji text,
+  likes integer default 0,
+  comments_count integer default 0,
+  created_at timestamptz default now()
+);
+alter table posts enable row level security;
+create policy "Anyone can view posts" on posts for select using (true);
+create policy "Authenticated users can post" on posts for insert with check (auth.uid() = user_id);
+
+-- POST LIKES
+create table if not exists post_likes (
+  id uuid default gen_random_uuid() primary key,
+  post_id uuid references posts(id) on delete cascade,
+  user_id uuid references profiles(id) on delete cascade,
+  created_at timestamptz default now(),
+  unique(post_id, user_id)
+);
+alter table post_likes enable row level security;
+create policy "Anyone can view likes" on post_likes for select using (true);
+create policy "Users can like posts" on post_likes for insert with check (auth.uid() = user_id);
+create policy "Users can unlike posts" on post_likes for delete using (auth.uid() = user_id);
+
+-- COMMENTS
+create table if not exists comments (
+  id uuid default gen_random_uuid() primary key,
+  post_id uuid references posts(id) on delete cascade,
+  user_id uuid references profiles(id) on delete cascade,
+  content text not null,
+  created_at timestamptz default now()
+);
+alter table comments enable row level security;
+create policy "Anyone can view comments" on comments for select using (true);
+create policy "Users can comment" on comments for insert with check (auth.uid() = user_id);
+
+-- INTELLIGENCE PATTERNS
+create table if not exists intelligence_patterns (
+  id uuid default gen_random_uuid() primary key,
+  title text not null,
+  description text,
+  confidence numeric default 0.8,
+  trend text check (trend in ('rising','stable','declining')) default 'stable',
+  severity text check (severity in ('low','moderate','high','critical')) default 'low',
+  type text check (type in ('pattern','risk','alert')) default 'pattern',
+  regions text[],
+  issue_areas text[],
+  data_points integer default 0,
+  is_active boolean default true,
+  created_at timestamptz default now()
+);
+alter table intelligence_patterns enable row level security;
+create policy "Anyone can view intelligence" on intelligence_patterns for select using (true);
+
+-- FUNDING CALLS
+create table if not exists funding_calls (
+  id uuid default gen_random_uuid() primary key,
+  title text not null,
+  description text,
+  organization text,
+  type text check (type in ('rfp','grant','tender','contract')) default 'grant',
+  budget_min numeric default 0,
+  budget_max numeric default 0,
+  currency text default 'USD',
+  deadline timestamptz,
+  countries text[],
+  issue_areas text[],
+  is_urgent boolean default false,
+  source text,
+  created_at timestamptz default now()
+);
+alter table funding_calls enable row level security;
+create policy "Anyone can view funding calls" on funding_calls for select using (true);
+
+-- AUTO-CREATE PROFILE ON SIGNUP
+create or replace function public.handle_new_user()
+returns trigger as $$
+begin
+  insert into public.profiles (id, full_name, email, avatar_initials)
+  values (
+    new.id,
+    coalesce(new.raw_user_meta_data->>'full_name', 'New User'),
+    new.email,
+    upper(left(coalesce(new.raw_user_meta_data->>'full_name', 'NU'), 2))
+  );
+  return new;
+end;
+$$ language plpgsql security definer;
+
+drop trigger if exists on_auth_user_created on auth.users;
+create trigger on_auth_user_created
+  after insert on auth.users
+  for each row execute procedure public.handle_new_user();
+
+-- SEED: Sample proposals
+insert into proposals (title, description, type, status, country, issue_area, budget, votes_for, votes_against, urgency) values
+('East Africa Flood Early Warning Network', 'Real-time flood monitoring across Kenya, Uganda and Tanzania using IoT sensors and satellite imagery.', 'proposal', 'voting', 'Kenya', 'Climate Adaptation', 2400000, 1342, 497, 'medium'),
+('West Africa Malaria Genomic Surveillance Sub-DAO', 'Community-led genomic tracking of malaria variants across Ghana, Nigeria, and Senegal.', 'proposal', 'voting', 'Ghana', 'Disease Prevention', 2000000, 1872, 438, 'high'),
+('Emergency Cholera Response — Eastern DRC', 'Urgent field support: water purification, rehydration supplies for active outbreak.', 'ask', 'voting', 'DRC', 'Public Health Emergency', 85000, 181, 131, 'critical')
+on conflict do nothing;
+
+-- SEED: Sample intelligence
+insert into intelligence_patterns (title, description, confidence, trend, severity, type, regions, issue_areas, data_points) values
+('Increased Vaccine Hesitancy in Rural East Africa', 'Analysis shows 23% increase in vaccine hesitancy mentions across rural communities over 60 days.', 0.87, 'rising', 'moderate', 'pattern', ARRAY['East Africa'], ARRAY['Public Health','Community Health'], 342),
+('Drought-Driven Migration Corridors Emerging', 'Three distinct corridors identified with increased movement toward coastal urban centers.', 0.92, 'rising', 'high', 'risk', ARRAY['West Africa','Sahel'], ARRAY['Climate Adaptation','Migration'], 567),
+('Cholera Outbreak Signal — Eastern DRC', 'Multiple CHW reports indicate suspected cholera cases near Goma border camps.', 0.89, 'rising', 'critical', 'alert', ARRAY['Central Africa'], ARRAY['Disease Surveillance'], 124)
+on conflict do nothing;
+
+select 'NexTerra database setup complete! All tables created.' as status;
