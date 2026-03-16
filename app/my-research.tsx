@@ -16,7 +16,6 @@ import {
   ArrowLeft,
   BookOpen,
   Plus,
-  Upload,
   FileText,
   Clock,
   Edit3,

@@ -7,7 +7,7 @@ import { StatusBar } from "expo-status-bar";
 import Colors from "@/constants/colors";
 import { trpc, trpcClient } from "@/lib/trpc";
 
-SplashScreen.preventAutoHideAsync();
+void SplashScreen.preventAutoHideAsync();
 
 const queryClient = new QueryClient();
 
@@ -29,6 +29,23 @@ function RootLayoutNav() {
       <Stack.Screen name="collaboration" options={{ presentation: 'card', headerShown: false }} />
       <Stack.Screen name="collaboration/[id]" options={{ presentation: 'card', headerShown: false }} />
       <Stack.Screen name="vote/[id]" options={{ presentation: 'card', headerShown: false }} />
+      <Stack.Screen name="community-feed" options={{ presentation: 'card', headerShown: false }} />
+      <Stack.Screen name="on-the-ground" options={{ presentation: 'card', headerShown: false }} />
+      <Stack.Screen name="my-research" options={{ presentation: 'card', headerShown: false }} />
+      <Stack.Screen name="economics" options={{ presentation: 'card', headerShown: false }} />
+      <Stack.Screen name="field-knowledge" options={{ presentation: 'card', headerShown: false }} />
+      <Stack.Screen name="field/[id]" options={{ presentation: 'card' }} />
+      <Stack.Screen name="leaderboards" options={{ presentation: 'card', headerShown: false }} />
+      <Stack.Screen name="my-daos" options={{ presentation: 'card', headerShown: false }} />
+      <Stack.Screen name="submit-ask" options={{ presentation: 'card', headerShown: false }} />
+      <Stack.Screen name="submit-insight-request" options={{ presentation: 'card', headerShown: false }} />
+      <Stack.Screen name="submit-proposal" options={{ presentation: 'card', headerShown: false }} />
+      <Stack.Screen name="dao/[id]" options={{ presentation: 'card', headerShown: false }} />
+      <Stack.Screen name="intelligence" options={{ presentation: 'card', headerShown: false }} />
+      <Stack.Screen name="chat/new/[userId]" options={{ presentation: 'card', headerShown: false }} />
+      <Stack.Screen name="collaborate/[userId]" options={{ presentation: 'card', headerShown: false }} />
+      <Stack.Screen name="insight-request/[id]" options={{ presentation: 'card', headerShown: false }} />
+      <Stack.Screen name="user-research/[userId]" options={{ presentation: 'card', headerShown: false }} />
       <Stack.Screen name="+not-found" options={{ title: "Not Found" }} />
     </Stack>
   );
@@ -36,7 +53,7 @@ function RootLayoutNav() {
 
 export default function RootLayout() {
   useEffect(() => {
-    SplashScreen.hideAsync();
+    void SplashScreen.hideAsync();
   }, []);
 
   return (
