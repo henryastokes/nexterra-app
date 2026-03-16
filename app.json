@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "NexTerra App",
-    "slug": "nextera-app",
+    "slug": "nextera-mobile-app",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
