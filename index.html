@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+<title>NexTerra — Decentralized Science Infrastructure for Africa</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<script>
+  const SUPABASE_URL = "https://ymobaxfurtumdscwcxia.supabase.co";
+  const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inltb2JheGZ1cnR1bWRzY3djeGlhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2Mzk3NjgsImV4cCI6MjA4OTIxNTc2OH0.esw9d9RfzR_YjuOiwPhs0jTXT_c7IvlJ32IlpSAJf08";
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+:root{--bg:#0A1612;--bg2:#0F1E18;--card:#152820;--card2:#1A3028;--primary:#2DB3A0;--accent:#5DBB8A;--golden:#D4A853;--lp:#E8470A;--text:#fff;--text2:#A8C4B8;--text3:#5A7A6A;--border:#1E3830;--success:#5DBB8A;--error:#EF5350;--sidebar:240px;}
+html,body{min-height:100vh;background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;overflow-x:hidden;}
+.syne{font-family:'Syne',sans-serif;}
+::-webkit-scrollbar{width:4px;}::-webkit-scrollbar-track{background:var(--bg);}::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+
+/* ── AUTH PAGE ── */
+#authPage{min-height:100vh;display:flex;}
+.auth-left{width:45%;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:48px;position:relative;overflow:hidden;}
+.auth-left::before{content:'';position:absolute;top:-100px;right:-100px;width:400px;height:400px;border-radius:50%;background:rgba(45,179,160,.04);}
+.auth-left::after{content:'';position:absolute;bottom:-80px;left:-80px;width:300px;height:300px;border-radius:50%;background:rgba(93,187,138,.03);}
+.auth-right{flex:1;display:flex;align-items:center;justify-content:center;padding:48px 40px;overflow-y:auto;}
+.brand{display:flex;align-items:center;gap:12px;margin-bottom:56px;position:relative;z-index:1;}
+.brand-txt{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--primary);}
+.hero-tag{display:inline-flex;align-items:center;gap:6px;background:rgba(45,179,160,.1);border:1px solid rgba(45,179,160,.25);border-radius:20px;padding:5px 14px;font-size:12px;font-weight:600;color:var(--primary);margin-bottom:20px;position:relative;z-index:1;}
+.hero-dot{width:6px;height:6px;border-radius:50%;background:var(--primary);animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.hero-title{font-family:'Syne',sans-serif;font-size:38px;font-weight:800;line-height:1.15;margin-bottom:16px;position:relative;z-index:1;}
+.hero-title span{color:var(--primary);}
+.hero-sub{font-size:15px;color:var(--text2);line-height:1.7;margin-bottom:40px;position:relative;z-index:1;}
+.pillars{display:flex;flex-direction:column;gap:14px;position:relative;z-index:1;}
+.pillar{display:flex;align-items:center;gap:14px;}
+.p-ico{width:40px;height:40px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.p-ico.dao{background:rgba(45,179,160,.12);}.p-ico.chain{background:rgba(93,187,138,.12);}.p-ico.ai{background:rgba(212,168,83,.12);}.p-ico.pay{background:rgba(232,71,10,.1);}
+.p-title{font-size:14px;font-weight:600;margin-bottom:2px;}
+.p-sub{font-size:12px;color:var(--text3);}
+.left-stats{display:flex;gap:20px;margin-top:40px;padding-top:32px;border-top:1px solid var(--border);position:relative;z-index:1;flex-wrap:wrap;}
+.lstat-val{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--primary);}
+.lstat-lbl{font-size:11px;color:var(--text3);margin-top:2px;}
+.form-box{width:100%;max-width:440px;}
+.f-tabs{display:flex;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:3px;gap:3px;margin-bottom:24px;}
+.f-tab{flex:1;padding:10px;border-radius:9px;font-size:13px;font-weight:700;color:var(--text2);cursor:pointer;border:none;background:none;font-family:'DM Sans',sans-serif;transition:all .15s;}
+.f-tab.on{background:var(--primary);color:#0A1612;}
+.role-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;}
+.role-card{padding:14px;background:var(--card);border:1px solid var(--border);border-radius:12px;cursor:pointer;transition:all .15s;text-align:center;}
+.role-card:hover{border-color:var(--primary);}
+.role-card.on{border-color:var(--primary);background:rgba(45,179,160,.08);}
+.r-ico{font-size:22px;margin-bottom:6px;}
+.r-name{font-size:13px;font-weight:700;margin-bottom:2px;}
+.r-desc{font-size:11px;color:var(--text3);}
+.fg{margin-bottom:14px;}
+.fl{font-size:12px;font-weight:600;color:var(--text2);margin-bottom:5px;display:flex;justify-content:space-between;}
+.fl a{color:var(--primary);cursor:pointer;font-weight:500;}
+.fi{width:100%;background:var(--card);border:1px solid var(--border);border-radius:11px;padding:12px 14px;font-size:14px;color:var(--text);font-family:'DM Sans',sans-serif;outline:none;transition:border-color .15s;}
+.fi:focus{border-color:var(--primary);}
+.fi::placeholder{color:var(--text3);}
+.fi-row{display:flex;gap:10px;}
+.fi-row .fg{flex:1;}
+.fi-sel{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%235A7A6A' d='M6 8L1 3h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;}
+.phone-row{display:flex;gap:8px;}.phone-code{width:90px;flex-shrink:0;}
+.pwd-bars{display:flex;gap:4px;margin-top:6px;}
+.pb{flex:1;height:3px;border-radius:2px;background:var(--border);transition:background .3s;}
+.pb.weak{background:var(--error);}.pb.medium{background:var(--golden);}.pb.strong{background:var(--accent);}
+.chk-row{display:flex;align-items:flex-start;gap:10px;margin-bottom:16px;}
+.chk-row input{width:16px;height:16px;margin-top:2px;accent-color:var(--primary);flex-shrink:0;}
+.chk-row label{font-size:12px;color:var(--text2);line-height:1.5;}
+.chk-row label a{color:var(--primary);}
+.or-div{display:flex;align-items:center;gap:12px;margin:18px 0;}
+.or-line{flex:1;height:1px;background:var(--border);}
+.or-txt{font-size:12px;color:var(--text3);}
+.soc-btns{display:flex;gap:10px;margin-bottom:18px;}
+.soc-btn{flex:1;display:flex;align-items:center;justify-content:center;gap:8px;padding:11px;border:1px solid var(--border);border-radius:11px;background:var(--card);color:var(--text2);font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;font-family:'DM Sans',sans-serif;}
+.soc-btn:hover{border-color:var(--primary);color:var(--text);}
+.btn-submit{width:100%;padding:14px;background:var(--primary);color:#0A1612;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;transition:opacity .15s;margin-bottom:14px;}
+.btn-submit:hover{opacity:.9;}
+.btn-submit:disabled{opacity:.5;cursor:not-allowed;}
+.sw-link{text-align:center;font-size:13px;color:var(--text2);}
+.sw-link a{color:var(--primary);font-weight:600;cursor:pointer;}
+.kyc-box{display:flex;gap:10px;padding:12px 14px;background:rgba(45,179,160,.07);border:1px solid rgba(45,179,160,.15);border-radius:11px;margin-bottom:16px;}
+.kyc-box p{font-size:12px;color:var(--text2);line-height:1.5;}
+.succ-state{text-align:center;padding:20px 0;}
+.succ-ico{width:72px;height:72px;border-radius:50%;background:rgba(93,187,138,.15);border:2px solid var(--accent);display:flex;align-items:center;justify-content:center;font-size:30px;margin:0 auto 16px;}
+.step-dots{display:flex;align-items:center;gap:6px;margin-bottom:22px;}
+.sdot{width:8px;height:8px;border-radius:50%;background:var(--border);transition:all .3s;}
+.sdot.on{background:var(--primary);width:24px;border-radius:4px;}
+.sdot.done{background:var(--accent);}
+.sdot-lbl{font-size:12px;color:var(--text3);margin-left:4px;}
+.err-box{background:rgba(239,83,80,.12);border:1px solid rgba(239,83,80,.3);border-radius:9px;padding:10px 13px;font-size:13px;color:var(--error);margin-bottom:14px;display:none;}
+.ok-box{background:rgba(93,187,138,.1);border:1px solid rgba(93,187,138,.3);border-radius:9px;padding:10px 13px;font-size:13px;color:var(--accent);margin-bottom:14px;display:none;}
+.load-box{text-align:center;font-size:13px;color:var(--text2);padding:8px;display:none;}
+.guest-lnk{text-align:center;margin-top:10px;font-size:13px;color:var(--text3);cursor:pointer;}
+.guest-lnk:hover{color:var(--text2);}
+
+/* ── MAIN APP ── */
+#mainApp{display:none;}
+.app-wrap{display:flex;min-height:100vh;}
+.sidebar{width:var(--sidebar);background:var(--bg2);border-right:1px solid var(--border);position:fixed;top:0;left:0;height:100vh;overflow-y:auto;z-index:100;display:flex;flex-direction:column;transition:transform .3s ease;}
+.sb-logo{padding:18px 20px;border-bottom:1px solid var(--border);}
+.sb-logo .lt{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--primary);}
+.sb-logo .ls{font-size:10px;color:var(--text3);margin-top:2px;}
+.sb-user{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;}
+.ava{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--accent));display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;}
+.sb-user .un{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.sb-user .ur{font-size:11px;color:var(--text2);}
+.sb-user .us{margin-left:auto;font-size:13px;font-weight:700;color:var(--primary);flex-shrink:0;}
+.nav-items{padding:10px 0;flex:1;}
+.nav-item{display:flex;align-items:center;gap:12px;padding:11px 20px;cursor:pointer;color:var(--text2);font-size:14px;font-weight:500;transition:all .2s;border-left:3px solid transparent;position:relative;}
+.nav-item:hover{background:var(--card);color:var(--text);}
+.nav-item.active{background:var(--card);color:var(--primary);border-left-color:var(--primary);}
+.nav-ico{font-size:18px;width:22px;text-align:center;}
+.nav-badge{position:absolute;right:14px;background:var(--error);color:#fff;font-size:10px;font-weight:700;padding:1px 5px;border-radius:9px;}
+.main-col{margin-left:var(--sidebar);flex:1;display:flex;flex-direction:column;min-height:100vh;}
+.top-bar{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 24px;height:56px;display:flex;align-items:center;gap:14px;position:sticky;top:0;z-index:90;}
+.srch{display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--border);border-radius:8px;padding:6px 12px;flex:1;max-width:340px;}
+.srch input{background:none;border:none;outline:none;color:var(--text);font-size:13px;width:100%;}
+.srch input::placeholder{color:var(--text3);}
+.ico-btn{width:36px;height:36px;border-radius:8px;background:var(--card);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;}
+.ava-sm{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--accent));display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;cursor:pointer;}
+.content-area{flex:1;padding:24px;max-width:1200px;}
+.mob-hdr{display:none;background:var(--bg2);border-bottom:1px solid var(--border);padding:12px 16px;position:sticky;top:0;z-index:100;align-items:center;gap:12px;}
+.ham{font-size:20px;cursor:pointer;color:var(--text2);}
+.mob-logo{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:var(--primary);flex:1;}
+.sb-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:99;}
+.bot-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--bg2);border-top:1px solid var(--border);padding:8px 0 max(8px,env(safe-area-inset-bottom));z-index:100;}
+.bn-items{display:flex;justify-content:space-around;}
+.bn-item{display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 6px;cursor:pointer;color:var(--text3);font-size:10px;font-weight:500;transition:color .2s;position:relative;}
+.bn-item.active{color:var(--primary);}
+.bn-ico{font-size:18px;}
+.bn-badge{position:absolute;top:1px;right:2px;background:var(--error);color:#fff;font-size:9px;font-weight:700;padding:1px 4px;border-radius:8px;}
+
+/* shared */
+.btn{padding:9px 16px;border-radius:9px;font-size:13px;font-weight:600;cursor:pointer;border:none;font-family:'DM Sans',sans-serif;transition:all .2s;}
+.btn-p{background:var(--primary);color:#fff;}.btn-p:hover{filter:brightness(1.1);}
+.btn-d{background:rgba(239,83,80,.12);color:var(--error);border:1px solid rgba(239,83,80,.25);}
+.btn-o{background:transparent;color:var(--text2);border:1px solid var(--border);}.btn-o:hover{background:var(--card2);}
+.btn-lp{background:var(--lp);color:#fff;}
+.btn-sm{padding:6px 12px;font-size:12px;}
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;}
+.sg{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;}
+.sc{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px 16px;}
+.sc .sl{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;}
+.sc .sv{font-size:22px;font-weight:700;font-family:'Syne',sans-serif;}
+.sc .sd{font-size:11px;color:var(--accent);margin-top:2px;}
+.tb{display:flex;gap:4px;background:var(--card);border-radius:10px;padding:4px;margin-bottom:20px;flex-wrap:wrap;}
+.tt{padding:7px 14px;border-radius:7px;cursor:pointer;font-size:13px;font-weight:500;color:var(--text2);transition:all .2s;white-space:nowrap;}
+.tt.on{background:var(--bg2);color:var(--text);}
+.badge{display:inline-flex;align-items:center;padding:3px 8px;border-radius:6px;font-size:11px;font-weight:600;}
+.b-p{background:rgba(45,179,160,.15);color:var(--primary);}
+.b-a{background:rgba(212,168,83,.15);color:var(--golden);}
+.b-ok{background:rgba(93,187,138,.15);color:var(--accent);}
+.b-crit{background:rgba(239,83,80,.15);color:var(--error);}
+.prog{height:5px;background:var(--card2);border-radius:3px;overflow:hidden;margin-bottom:10px;}
+.pf{height:100%;background:var(--primary);border-radius:3px;}
+.cs{display:grid;grid-template-columns:1fr 280px;gap:20px;}
+.side-col{display:flex;flex-direction:column;gap:14px;}
+.pt{font-size:13px;font-weight:700;color:var(--text2);margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;}
+.pl{font-size:11px;color:var(--primary);cursor:pointer;}
+.lb-it{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border);}
+.lb-it:last-child{border-bottom:none;}
+.lb-r{font-size:13px;font-weight:700;color:var(--text3);width:16px;}
+.lb-n{flex:1;font-size:13px;font-weight:500;}
+.lb-s{font-size:13px;font-weight:700;color:var(--primary);}
+.pc{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:14px;}
+.ph{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap;}
+.dtag{background:var(--card2);color:var(--text2);font-size:11px;padding:3px 8px;border-radius:6px;}
+.dl{margin-left:auto;font-size:11px;color:var(--text3);}
+.pt2{font-size:15px;font-weight:600;margin-bottom:6px;line-height:1.3;}
+.pd{font-size:13px;color:var(--text2);line-height:1.5;margin-bottom:12px;}
+.pm{display:flex;gap:12px;flex-wrap:wrap;font-size:12px;color:var(--text3);margin-bottom:12px;}
+.vbt{height:6px;background:rgba(239,83,80,.15);border-radius:3px;overflow:hidden;margin:5px 0;}
+.vbf{height:100%;background:var(--accent);border-radius:3px;transition:width .5s;}
+.vls{display:flex;justify-content:space-between;font-size:11px;}
+.vf{color:var(--accent);}.vag{color:var(--error);}
+.va{display:flex;gap:8px;margin-top:10px;}
+.pauth{display:flex;align-items:center;gap:8px;margin-top:10px;}
+.sava{width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--accent));display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;flex-shrink:0;}
+.ai{font-size:12px;color:var(--text3);}
+.al-it{padding:7px 0;border-bottom:1px solid var(--border);}
+.al-it:last-child{border-bottom:none;}
+.al-lv{font-size:10px;font-weight:700;margin-bottom:2px;}
+.al-c{color:var(--error);}.al-w{color:var(--golden);}.al-i{color:var(--primary);}
+.al-t{font-size:12px;color:var(--text2);}
+.wc{background:linear-gradient(135deg,var(--card2),rgba(45,179,160,.08));border:1px solid var(--primary);border-radius:14px;padding:20px;margin-bottom:16px;}
+.wl{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;}
+.wam{font-size:30px;font-weight:700;font-family:'Syne',sans-serif;margin:4px 0;}
+.wm{display:flex;justify-content:space-between;align-items:center;margin-top:8px;flex-wrap:wrap;gap:8px;}
+.wid{font-size:11px;color:var(--text3);font-family:monospace;}
+.wst{font-size:11px;color:var(--accent);}
+.wbs{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;}
+.wb{flex:1;min-width:80px;padding:10px 8px;border-radius:10px;text-align:center;cursor:pointer;border:1px solid var(--border);background:var(--card);font-size:12px;font-weight:600;color:var(--text2);transition:all .2s;}
+.wb:hover{border-color:var(--primary);color:var(--primary);}
+.lp-ban{background:rgba(232,71,10,.08);border:1px solid rgba(232,71,10,.3);border-radius:10px;padding:12px 14px;display:flex;align-items:center;gap:12px;margin-bottom:16px;}
+.lp-lg{font-weight:900;font-size:14px;color:#fff;letter-spacing:1px;}
+.lp-py{background:var(--lp);color:#fff;font-weight:900;font-size:11px;padding:2px 6px;border-radius:3px;display:inline-block;}
+.tx{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);}
+.tx:last-child{border-bottom:none;}
+.tx-i{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;}
+.ti-in{background:rgba(93,187,138,.12);}.ti-out{background:rgba(45,179,160,.08);}.ti-p{background:rgba(212,168,83,.08);}
+.tx-inf{flex:1;}
+.tx-d{font-size:13px;font-weight:500;}
+.tx-m{font-size:11px;color:var(--text3);margin-top:1px;}
+.txa{font-size:14px;font-weight:700;}
+.ta-p{color:var(--accent);}.ta-n{color:var(--text2);}
+.tx-s{font-size:10px;font-weight:600;}
+.sc-ok{color:var(--accent);}.sc-p{color:var(--golden);}
+.mg{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px;}
+.mc{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;}
+.ms{display:flex;align-items:center;gap:6px;margin-bottom:8px;}
+.mp{font-size:13px;font-weight:700;color:var(--primary);}
+.mi{font-size:11px;color:var(--text3);}
+.mt2{font-size:14px;font-weight:600;margin-bottom:6px;line-height:1.3;}
+.mm{font-size:12px;color:var(--text3);margin-bottom:10px;}
+.rfp{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:10px;}
+.rfp-h{display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap;}
+.rft{font-size:10px;font-weight:700;text-transform:uppercase;padding:2px 7px;border-radius:5px;background:rgba(45,179,160,.12);color:var(--primary);}
+.rfu{background:rgba(239,83,80,.12);color:var(--error);}
+.rfo{font-size:12px;color:var(--text3);margin-bottom:4px;}
+.rftl{font-size:14px;font-weight:600;margin-bottom:8px;}
+.rfts{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;}
+.rftt{font-size:10px;padding:2px 7px;background:var(--card2);color:var(--text3);border-radius:5px;}
+.rfF{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;}
+.rfam{font-size:12px;color:var(--golden);}
+.rfdd{font-size:11px;color:var(--text3);}
+.sdao{background:rgba(212,168,83,.12);color:var(--golden);border:1px solid rgba(212,168,83,.25);font-size:11px;padding:4px 10px;border-radius:6px;cursor:pointer;font-weight:600;}
+.dg{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;}
+.dc{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;}
+.de{font-size:28px;margin-bottom:10px;}
+.dt{font-size:15px;font-weight:700;margin-bottom:4px;}
+.dd{font-size:12px;color:var(--text2);margin-bottom:12px;line-height:1.4;}
+.dst{display:flex;gap:14px;margin-bottom:12px;flex-wrap:wrap;}
+.dst span{font-size:12px;color:var(--text3);}
+.dst strong{color:var(--text);font-weight:600;}
+.df{display:flex;align-items:center;justify-content:space-between;}
+.ch-b{font-size:10px;color:var(--primary);background:rgba(45,179,160,.1);padding:3px 8px;border-radius:5px;}
+.ig{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.ic{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;}
+.itr{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;padding:3px 8px;border-radius:6px;margin-bottom:8px;}
+.tr-r{background:rgba(212,168,83,.12);color:var(--golden);}
+.tr-c{background:rgba(239,83,80,.12);color:var(--error);}
+.it{font-size:14px;font-weight:600;margin-bottom:6px;}
+.id2{font-size:12px;color:var(--text2);line-height:1.5;margin-bottom:10px;}
+.cb{height:4px;background:var(--card2);border-radius:2px;overflow:hidden;margin-bottom:6px;}
+.cf{height:100%;background:var(--primary);border-radius:2px;}
+.dst2{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;}
+.dt2{font-size:10px;padding:2px 7px;border-radius:5px;}
+.dd-dao{background:rgba(45,179,160,.08);color:var(--primary);}
+.dd-fld{background:rgba(93,187,138,.08);color:var(--accent);}
+.ac{background:var(--card);border-radius:12px;padding:14px;margin-bottom:10px;}
+.ac-crit{border:1px solid rgba(239,83,80,.2);border-left:4px solid var(--error);}
+.ac-warn{border:1px solid rgba(212,168,83,.2);border-left:4px solid var(--golden);}
+.ac-h{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+.ac-t{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;}
+.ac-tm{font-size:11px;color:var(--text3);margin-left:auto;}
+.post-c{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px;}
+.post-h{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+.pr{font-size:10px;font-weight:700;padding:2px 7px;border-radius:5px;}
+.pr-r{background:rgba(45,179,160,.12);color:var(--primary);}
+.pr-d{background:rgba(212,168,83,.12);color:var(--golden);}
+.pau{font-size:13px;font-weight:600;}
+.paf{font-size:11px;color:var(--text3);}
+.post-txt{font-size:14px;line-height:1.6;margin-bottom:12px;}
+.post-acts{display:flex;gap:16px;}
+.pa{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text3);cursor:pointer;transition:color .2s;}
+.pa:hover{color:var(--text);}
+.cmt-area{margin-top:12px;padding-top:12px;border-top:1px solid var(--border);}
+.cmt-it{display:flex;gap:8px;margin-bottom:8px;}
+.cav{width:24px;height:24px;border-radius:50%;background:var(--card2);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;flex-shrink:0;}
+.ctxt{font-size:12px;color:var(--text2);padding:6px 10px;background:var(--card2);border-radius:8px;flex:1;}
+.prof-hero{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:16px;}
+.prof-top{display:flex;align-items:flex-start;gap:16px;margin-bottom:16px;}
+.pava{width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--accent));display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;flex-shrink:0;}
+.pname{font-size:20px;font-weight:700;margin-bottom:2px;}
+.psub{font-size:13px;color:var(--text2);margin-bottom:4px;}
+.ploc{font-size:12px;color:var(--text3);}
+.pacts{display:flex;gap:8px;flex-wrap:wrap;}
+.cred-r{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+.cred-l{font-size:12px;color:var(--text2);min-width:150px;}
+.cred-tr{flex:1;height:5px;background:var(--card2);border-radius:3px;overflow:hidden;}
+.cred-f{height:100%;background:var(--primary);border-radius:3px;}
+.cred-v{font-size:12px;font-weight:600;min-width:28px;text-align:right;}
+
+/* toast */
+.toast{position:fixed;bottom:76px;left:50%;transform:translateX(-50%) translateY(100px);background:var(--card);border:1px solid var(--border);border-radius:10px;padding:10px 18px;font-size:13px;font-weight:500;z-index:999;transition:transform .3s ease;box-shadow:0 4px 20px rgba(0,0,0,.4);}
+.toast.show{transform:translateX(-50%) translateY(0);}
+.t-ok{border-color:rgba(93,187,138,.4);color:var(--accent);}
+.t-err{border-color:rgba(239,83,80,.4);color:var(--error);}
+
+@media(max-width:900px){.auth-left{display:none;}.auth-right{padding:32px 24px;align-items:flex-start;}.form-box{max-width:100%;}}
+@media(max-width:1024px){.sg{grid-template-columns:repeat(2,1fr);}.cs{grid-template-columns:1fr;}.ig{grid-template-columns:1fr;}}
+@media(max-width:768px){
+  .sidebar{transform:translateX(-100%);}
+  .sidebar.open{transform:translateX(0);}
+  .sb-overlay.open{display:block;}
+  .main-col{margin-left:0;}
+  .top-bar{display:none;}
+  .mob-hdr{display:flex;}
+  .bot-nav{display:block;}
+  .content-area{padding:14px;padding-bottom:76px;}
+  .sg{grid-template-columns:1fr 1fr;gap:8px;}
+  .dg,.mg{grid-template-columns:1fr;}
+}
+@media(max-width:480px){.auth-right{padding:24px 16px;}.fi-row{flex-direction:column;gap:0;}.role-grid{grid-template-columns:1fr 1fr;}}
+</style>
+</head>
+<body>
+<div class="toast" id="toast"></div>
+
+<!-- ════════════════════════════════════════
+     AUTH / SIGNUP PAGE  — shown first
+     ════════════════════════════════════════ -->
+<div id="authPage">
+  <div class="auth-left">
+    <div class="brand">
+      <svg width="32" height="32" viewBox="0 0 80 80" fill="none"><ellipse cx="40" cy="22" rx="18" ry="16" fill="#2DB3A0" opacity=".95"/><ellipse cx="24" cy="52" rx="18" ry="16" fill="#5DBB8A" opacity=".9"/><ellipse cx="56" cy="52" rx="18" ry="16" fill="#D4A853" opacity=".9"/><circle cx="40" cy="44" r="10" fill="#0A1612"/></svg>
+      <span class="brand-txt">NexTerra</span>
+    </div>
+    <div class="hero-tag"><span class="hero-dot"></span>Now live across Africa</div>
+    <div class="hero-title">Africa's Science<br><span>Infrastructure</span><br>Layer</div>
+    <div class="hero-sub">Decentralized funding, governance &amp; intelligence for climate and health research. Join 2,400+ researchers, funders and practitioners.</div>
+    <div class="pillars">
+      <div class="pillar"><div class="p-ico dao">🏛</div><div><div class="p-title">DAO Governance</div><div class="p-sub">On-chain voting, milestone enforcement</div></div></div>
+      <div class="pillar"><div class="p-ico chain">⛓</div><div><div class="p-title">Blockchain Transparency</div><div class="p-sub">Immutable records, real-time auditability</div></div></div>
+      <div class="pillar"><div class="p-ico ai">🧠</div><div><div class="p-title">AI Intelligence</div><div class="p-sub">Pattern detection, early-warning signals</div></div></div>
+      <div class="pillar"><div class="p-ico pay">💳</div><div><div class="p-title">LinkPay Wallet</div><div class="p-sub">MTN, Airtel, VISA, Bank Transfer</div></div></div>
+    </div>
+    <div class="left-stats">
+      <div><div class="lstat-val">23</div><div class="lstat-lbl">Countries</div></div>
+      <div><div class="lstat-val">$3.2M</div><div class="lstat-lbl">Funded</div></div>
+      <div><div class="lstat-val">8</div><div class="lstat-lbl">Active DAOs</div></div>
+      <div><div class="lstat-val">342</div><div class="lstat-lbl">Patterns</div></div>
+    </div>
+  </div>
+
+  <div class="auth-right">
+    <div class="form-box">
+      <div class="f-tabs">
+        <button class="f-tab on" id="tab-su" onclick="showAuthTab('su')">Create Account</button>
+        <button class="f-tab" id="tab-si" onclick="showAuthTab('si')">Sign In</button>
+      </div>
+
+      <!-- SIGNUP -->
+      <div id="form-su">
+        <div class="step-dots"><div class="sdot on" id="sd1"></div><div class="sdot" id="sd2"></div><div class="sdot" id="sd3"></div><span class="sdot-lbl" id="sdlbl">Step 1 of 3 — Your role</span></div>
+        <div class="err-box" id="su-err"></div>
+
+        <div id="step1">
+          <h2 style="font-family:'Syne',sans-serif;font-size:24px;font-weight:800;margin-bottom:6px;">Join NexTerra</h2>
+          <p style="font-size:14px;color:var(--text2);margin-bottom:20px;">Choose your primary role on the platform.</p>
+          <div class="role-grid">
+            <div class="role-card" onclick="selRole(this,'Researcher')"><div class="r-ico">🔬</div><div class="r-name">Researcher</div><div class="r-desc">Submit proposals &amp; field work</div></div>
+            <div class="role-card" onclick="selRole(this,'Funder')"><div class="r-ico">💰</div><div class="r-name">Funder</div><div class="r-desc">Fund projects &amp; DAOs</div></div>
+            <div class="role-card" onclick="selRole(this,'Practitioner')"><div class="r-ico">🌍</div><div class="r-name">Practitioner</div><div class="r-desc">Field worker &amp; implementer</div></div>
+            <div class="role-card" onclick="selRole(this,'Institution')"><div class="r-ico">🏛</div><div class="r-name">Institution</div><div class="r-desc">Government, NGO, university</div></div>
+          </div>
+          <button class="btn-submit" id="btn-s1" onclick="goStp(2)" disabled>Continue →</button>
+        </div>
+
+        <div id="step2" style="display:none;">
+          <h2 style="font-family:'Syne',sans-serif;font-size:24px;font-weight:800;margin-bottom:6px;">Your Details</h2>
+          <p style="font-size:14px;color:var(--text2);margin-bottom:20px;">Tell us about yourself.</p>
+          <div class="fi-row">
+            <div class="fg"><label class="fl">First name</label><input class="fi" placeholder="Amina" id="su-fn"/></div>
+            <div class="fg"><label class="fl">Last name</label><input class="fi" placeholder="Mwangi" id="su-ln"/></div>
+          </div>
+          <div class="fg"><label class="fl">Email address</label><input class="fi" type="email" placeholder="amina@university.ac.ke" id="su-em"/></div>
+          <div class="fg"><label class="fl">Phone number</label>
+            <div class="phone-row"><select class="fi fi-sel phone-code"><option>+254</option><option>+234</option><option>+233</option><option>+256</option><option>+255</option><option>+27</option><option>+237</option><option>+243</option><option>+221</option><option>+212</option><option>+1</option><option>+44</option></select><input class="fi" style="flex:1;" type="tel" placeholder="7XX XXX XXXX"/></div>
+          </div>
+          <div class="fg"><label class="fl">Country</label>
+            <select class="fi fi-sel" id="su-co"><option value="">Select your country</option><option>Kenya</option><option>Nigeria</option><option>Ghana</option><option>South Africa</option><option>Uganda</option><option>Tanzania</option><option>Ethiopia</option><option>Rwanda</option><option>Senegal</option><option>Côte d'Ivoire</option><option>Cameroon</option><option>DRC</option><option>Mali</option><option>Niger</option><option>Burkina Faso</option><option>Zimbabwe</option><option>Zambia</option><option>Mozambique</option><option>Other Africa</option><option>Outside Africa</option></select>
+          </div>
+          <div class="fg"><label class="fl">Affiliation <span style="color:var(--text3);font-weight:400;">(optional)</span></label><input class="fi" placeholder="University, NGO, institution…" id="su-af"/></div>
+          <button class="btn-submit" onclick="goStp(3)">Continue →</button>
+          <div style="text-align:center;margin-top:10px;"><button onclick="goStp(1)" style="background:none;border:none;color:var(--text3);font-size:13px;cursor:pointer;">← Back</button></div>
+        </div>
+
+        <div id="step3" style="display:none;">
+          <h2 style="font-family:'Syne',sans-serif;font-size:24px;font-weight:800;margin-bottom:6px;">Secure Your Account</h2>
+          <p style="font-size:14px;color:var(--text2);margin-bottom:20px;">Create a strong password to protect your account.</p>
+          <div class="fg"><label class="fl">Password</label><input class="fi" type="password" placeholder="Min. 8 characters" id="su-pw" oninput="chkPwd(this.value)"/><div class="pwd-bars"><div class="pb" id="pb1"></div><div class="pb" id="pb2"></div><div class="pb" id="pb3"></div><div class="pb" id="pb4"></div></div></div>
+          <div class="fg"><label class="fl">Confirm password</label><input class="fi" type="password" placeholder="Repeat password" id="su-pw2"/></div>
+          <div class="kyc-box"><span style="font-size:16px;flex-shrink:0;">🛡</span><p>KYC verification is required for funding and DAO participation. You can complete this after signup via Sumsub or Stripe Identity.</p></div>
+          <div class="chk-row"><input type="checkbox" id="terms"/><label for="terms">I agree to the <a>Terms of Service</a> and <a>Privacy Policy</a>. I understand NexTerra uses blockchain technology to record governance activity.</label></div>
+          <div class="chk-row"><input type="checkbox" id="comms" checked/><label for="comms">I'd like to receive updates on funding opportunities and platform news.</label></div>
+          <div class="or-div"><div class="or-line"></div><div class="or-txt">or sign up with</div><div class="or-line"></div></div>
+          <div class="soc-btns">
+            <button class="soc-btn" onclick="socialAuth('google')"><svg width="16" height="16" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>Google</button>
+            <button class="soc-btn" onclick="socialAuth('github')"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>GitHub</button>
+          </div>
+          <div class="load-box" id="su-load">Creating your account…</div>
+          <button class="btn-submit" onclick="doSignUp()">Create Account &amp; Join NexTerra</button>
+          <div style="text-align:center;margin-top:6px;"><button onclick="goStp(2)" style="background:none;border:none;color:var(--text3);font-size:13px;cursor:pointer;">← Back</button></div>
+        </div>
+
+        <div id="step-ok" style="display:none;">
+          <div class="succ-state">
+            <div class="succ-ico">🎉</div>
+            <h2 style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;margin-bottom:8px;">Welcome to NexTerra!</h2>
+            <p style="font-size:14px;color:var(--text2);line-height:1.6;margin-bottom:24px;">Account created! Check your email to verify, then you'll have full access.</p>
+            <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;text-align:left;margin-bottom:20px;">
+              <div style="font-size:13px;font-weight:700;margin-bottom:12px;color:var(--text2);">Your next steps:</div>
+              <div style="display:flex;flex-direction:column;gap:10px;">
+                <div style="display:flex;align-items:center;gap:10px;"><div style="width:24px;height:24px;border-radius:50%;background:rgba(45,179,160,.12);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--primary);flex-shrink:0;">1</div><span style="font-size:13px;color:var(--text2);">Verify your email address</span></div>
+                <div style="display:flex;align-items:center;gap:10px;"><div style="width:24px;height:24px;border-radius:50%;background:rgba(45,179,160,.12);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--primary);flex-shrink:0;">2</div><span style="font-size:13px;color:var(--text2);">Complete KYC identity verification</span></div>
+                <div style="display:flex;align-items:center;gap:10px;"><div style="width:24px;height:24px;border-radius:50%;background:rgba(45,179,160,.12);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--primary);flex-shrink:0;">3</div><span style="font-size:13px;color:var(--text2);">Connect your LinkPay wallet</span></div>
+                <div style="display:flex;align-items:center;gap:10px;"><div style="width:24px;height:24px;border-radius:50%;background:rgba(45,179,160,.12);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--primary);flex-shrink:0;">4</div><span style="font-size:13px;color:var(--text2);">Vote on your first proposal</span></div>
+              </div>
+            </div>
+            <button class="btn-submit" onclick="enterApp()">Enter NexTerra →</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- SIGN IN -->
+      <div id="form-si" style="display:none;">
+        <h2 style="font-family:'Syne',sans-serif;font-size:24px;font-weight:800;margin-bottom:6px;">Welcome back</h2>
+        <p style="font-size:14px;color:var(--text2);margin-bottom:24px;">Sign in to your NexTerra account.</p>
+        <div class="err-box" id="si-err"></div>
+        <div class="soc-btns">
+          <button class="soc-btn" onclick="socialAuth('google')"><svg width="16" height="16" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>Google</button>
+          <button class="soc-btn" onclick="socialAuth('github')"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>GitHub</button>
+        </div>
+        <div class="or-div"><div class="or-line"></div><div class="or-txt">or with email</div><div class="or-line"></div></div>
+        <div class="fg"><label class="fl">Email address</label><input class="fi" type="email" placeholder="your@email.com" id="si-em"/></div>
+        <div class="fg"><label class="fl">Password <a onclick="doForgot()">Forgot password?</a></label><input class="fi" type="password" placeholder="Your password" id="si-pw"/></div>
+        <div class="load-box" id="si-load">Signing in…</div>
+        <button class="btn-submit" onclick="doSignIn()">Sign In to NexTerra</button>
+        <div class="sw-link">Don't have an account? <a onclick="showAuthTab('su')">Create one free</a></div>
+        <div class="guest-lnk" onclick="enterApp()">Continue as guest (view only) →</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     MAIN APP  — shown after login
+     ════════════════════════════════════════ -->
+<div id="mainApp">
+  <div class="sb-overlay" id="sbOverlay" onclick="closeSB()"></div>
+  <div class="app-wrap">
+    <aside class="sidebar" id="sidebar">
+      <div class="sb-logo"><div class="lt">NexTerra</div><div class="ls">Decentralized Science for Africa</div></div>
+      <div class="sb-user"><div class="ava" id="sbAva">NT</div><div style="flex:1;min-width:0;"><div class="un" id="sbName">Loading…</div><div class="ur" id="sbRole">Member</div></div><div class="us" id="sbScore"></div></div>
+      <nav class="nav-items">
+        <div class="nav-item active" onclick="showTab('vote',this)"><span class="nav-ico">🗳</span>Vote</div>
+        <div class="nav-item" onclick="showTab('fund',this)"><span class="nav-ico">💰</span>Fund</div>
+        <div class="nav-item" onclick="showTab('match',this)"><span class="nav-ico">✨</span>Match</div>
+        <div class="nav-item" onclick="showTab('dao',this)"><span class="nav-ico">🏛</span>DAO</div>
+        <div class="nav-item" onclick="showTab('intel',this)"><span class="nav-ico">🧠</span>Intelligence<span class="nav-badge">3</span></div>
+        <div class="nav-item" onclick="showTab('community',this)"><span class="nav-ico">👥</span>Community</div>
+        <div class="nav-item" onclick="showTab('profile',this)"><span class="nav-ico">👤</span>Profile</div>
+      </nav>
+      <div style="padding:14px 20px;border-top:1px solid var(--border);"><button class="btn btn-o btn-sm" style="width:100%;" onclick="doSignOut()">Sign Out</button></div>
+    </aside>
+    <div class="main-col">
+      <header class="top-bar"><div class="srch"><span style="color:var(--text3);font-size:14px;">🔍</span><input type="text" placeholder="Search proposals, DAOs…"/></div><div style="display:flex;align-items:center;gap:12px;"><div class="ico-btn">🔔</div><div class="ava-sm" id="topAva" onclick="showTab('profile')">NT</div></div></header>
+      <header class="mob-hdr"><span class="ham" onclick="openSB()">☰</span><div class="mob-logo">NexTerra</div><div class="ico-btn" style="width:32px;height:32px;font-size:14px;">🔔</div><div class="ava-sm" id="mAva">NT</div></header>
+      <main class="content-area">
+
+        <!-- VOTE -->
+        <div id="tab-vote">
+          <h2 class="syne" style="font-size:22px;margin-bottom:4px;">Vote on Initiatives</h2>
+          <p style="color:var(--text2);font-size:13px;margin-bottom:20px;">Shape Africa's climate and health future — 7-day voting windows.</p>
+          <div class="sg"><div class="sc"><div class="sl">Active items</div><div class="sv">14</div><div class="sd">↑ 3 new this week</div></div><div class="sc"><div class="sl">Total votes cast</div><div class="sv">8,432</div><div class="sd">↑ +640 today</div></div><div class="sc"><div class="sl">In active proposals</div><div class="sv">$4.2M</div><div class="sd">↑ $800K this month</div></div><div class="sc"><div class="sl">Countries</div><div class="sv">23</div><div class="sd">↑ 2 new</div></div></div>
+          <div class="tb"><div class="tt on">All (14)</div><div class="tt">Proposals (9)</div><div class="tt">Asks (5)</div><div class="tt">Climate</div><div class="tt">Health</div></div>
+          <div class="cs">
+            <div>
+              <div class="pc"><div class="ph"><span class="badge b-p">📄 Proposal</span><span class="dtag">Climate DAO</span><span class="dl">⏱ 5d left</span></div><div class="pt2">East Africa Flood Early Warning Network</div><div class="pd">Real-time flood monitoring across Kenya, Uganda and Tanzania using IoT sensors and satellite imagery. Community-led data collection with 400+ field practitioners.</div><div class="pm"><span>📍 Kenya, Uganda, Tanzania</span><span>💵 2,400,000 USDC</span><span>👥 1,842 votes cast</span></div><div class="vls"><span class="vf">73% For</span><span class="vag">27% Against</span></div><div class="vbt"><div class="vbf" style="width:73%"></div></div><div class="va"><button class="btn btn-p btn-sm" onclick="castVote(this,'for')">✓ Vote For</button><button class="btn btn-d btn-sm" onclick="castVote(this,'against')">✗ Vote Against</button></div><div class="pauth"><div class="sava">AM</div><div class="ai">Amina Mwangi · University of Nairobi</div></div></div>
+              <div class="pc"><div class="ph"><span class="badge b-p">📄 Proposal</span><span class="badge b-ok">✓ Passed</span></div><div class="pt2">West Africa Malaria Genomic Surveillance Sub-DAO</div><div class="pd">Community-led genomic tracking of malaria variants across Ghana, Nigeria, and Senegal with 24/7 automated reporting to national health ministries.</div><div class="pm"><span>📍 Ghana, Nigeria, Senegal</span><span>💵 2,000,000 USDC</span></div><div class="vls"><span class="vf">81% For</span><span class="vag">19% Against</span></div><div class="vbt"><div class="vbf" style="width:81%"></div></div><div class="pauth"><div class="sava">KA</div><div class="ai">Dr. Kwame Asante · University of Ghana</div></div></div>
+              <div class="pc"><div class="ph"><span class="badge b-a">❓ Ask</span><span class="badge b-crit">⚠ Critical</span><span class="dl">2d left</span></div><div class="pt2">Emergency Cholera Response — Eastern DRC Border Camps</div><div class="pd">Urgent: water purification equipment, oral rehydration supplies, and 12 trained health workers for active outbreak affecting 12,000+ people.</div><div class="pm"><span>📍 Eastern DRC</span><span>💵 85,000 USDC</span></div><div class="vls"><span class="vf">58% For</span><span class="vag">42% Against</span></div><div class="vbt"><div class="vbf" style="width:58%"></div></div><div class="va"><button class="btn btn-p btn-sm" onclick="castVote(this,'for')">✓ Vote For</button><button class="btn btn-d btn-sm" onclick="castVote(this,'against')">✗ Vote Against</button></div><div class="pauth"><div class="sava">FO</div><div class="ai">Fatima Ouedraogo · MSF — DRC</div></div></div>
+            </div>
+            <div class="side-col">
+              <div class="card"><div class="pt">🏆 Leaderboard<span class="pl">See all</span></div><div class="lb-it"><span class="lb-r">1</span><div class="sava">AM</div><span class="lb-n">Amina Mwangi</span><span class="lb-s">94</span></div><div class="lb-it"><span class="lb-r">2</span><div class="sava">KA</div><span class="lb-n">Kwame Asante</span><span class="lb-s">91</span></div><div class="lb-it"><span class="lb-r">3</span><div class="sava">ZM</div><span class="lb-n">Zanele Mokoena</span><span class="lb-s">88</span></div></div>
+              <div class="card"><div class="pt">🧠 Intel Alerts<span class="pl" onclick="showTab('intel')">View all</span></div><div class="al-it"><div class="al-lv al-c">🚨 Critical — DRC</div><div class="al-t">Cholera outbreak signal detected</div></div><div class="al-it"><div class="al-lv al-w">⚡ Developing — Sahel</div><div class="al-t">Drought-driven food crisis signal</div></div><div class="al-it"><div class="al-lv al-i">👁 Monitoring — East Africa</div><div class="al-t">Vaccine hesitancy pattern rising</div></div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- FUND -->
+        <div id="tab-fund" style="display:none;">
+          <h2 class="syne" style="font-size:22px;margin-bottom:4px;">Fund Projects</h2>
+          <p style="color:var(--text2);font-size:13px;margin-bottom:20px;">Support voted proposals and asks. Powered by LinkPay.</p>
+          <div class="wc"><div style="display:flex;align-items:center;gap:7px;margin-bottom:8px;"><span class="lp-lg">LINK</span><span class="lp-py">PAY</span></div><div class="wl">Available Balance</div><div class="wam" id="walBal">USD 4,250.00</div><div class="wm"><span class="wid" id="walId">NXT-WALLET-0x4a2f...c81d</span><span class="wst">● Connected</span></div></div>
+          <div class="wbs"><div class="wb" onclick="wAction('deposit')">⬇️ Deposit</div><div class="wb" onclick="wAction('fund')">⬆️ Fund</div><div class="wb" onclick="wAction('withdraw')">🏦 Withdraw</div></div>
+          <div class="lp-ban"><div><div style="margin-bottom:3px;"><span class="lp-lg">LINK</span> <span class="lp-py">PAY</span></div><div style="font-size:13px;font-weight:600;">API Not Connected</div><div style="font-size:11px;color:var(--text3);">Add your API key to activate live payments</div></div><button class="btn btn-sm btn-lp" style="flex-shrink:0;">Setup →</button></div>
+          <h3 class="syne" style="font-size:16px;margin-bottom:12px;">Active Proposals to Fund</h3>
+          <div class="card" style="margin-bottom:10px;"><div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;"><span class="badge b-p">Proposal</span><span style="font-size:12px;color:var(--accent);">73% vote</span><span style="margin-left:auto;font-size:12px;color:var(--text3);">18d left</span></div><div style="font-size:14px;font-weight:600;margin-bottom:4px;">East Africa Flood Early Warning</div><div class="prog"><div class="pf" style="width:64%"></div></div><div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text3);margin-bottom:10px;"><span>$1.8M raised</span><span>64%</span></div><button class="btn btn-lp btn-sm" onclick="wAction('fund')">💵 Fund This Proposal</button></div>
+          <div class="card" style="margin-bottom:16px;"><div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;"><span class="badge b-a">Ask</span><span class="badge b-crit">Urgent</span><span style="margin-left:auto;font-size:12px;color:var(--text3);">2d left</span></div><div style="font-size:14px;font-weight:600;margin-bottom:4px;">Emergency Cholera Response — DRC</div><div class="prog"><div class="pf" style="width:49%;background:var(--golden)"></div></div><div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text3);margin-bottom:10px;"><span>$42K raised</span><span>49%</span></div><button class="btn btn-lp btn-sm" onclick="wAction('fund')">💵 Fund This Ask</button></div>
+          <h3 class="syne" style="font-size:16px;margin-bottom:12px;">Recent Transactions</h3>
+          <div class="card"><div class="tx"><div class="tx-i ti-in">💰</div><div class="tx-inf"><div class="tx-d">Disbursement: Milestone 3</div><div class="tx-m">LinkPay · Mar 12 · LP-00415</div></div><div><div class="txa ta-p">+$820</div><div class="tx-s sc-ok">Confirmed</div></div></div><div class="tx"><div class="tx-i ti-out">⬆️</div><div class="tx-inf"><div class="tx-d">Funded: Flood Warning DAO</div><div class="tx-m">MTN MoMo · Mar 14 · LP-00419</div></div><div><div class="txa ta-n">−$500</div><div class="tx-s sc-ok">Confirmed</div></div></div><div class="tx"><div class="tx-i ti-p">⏳</div><div class="tx-inf"><div class="tx-d">Funded: Malaria DAO Ask</div><div class="tx-m">Airtel Money · Mar 15 · LP-00422</div></div><div><div class="txa ta-n">−$250</div><div class="tx-s sc-p">Pending</div></div></div></div>
+        </div>
+
+        <!-- MATCH -->
+        <div id="tab-match" style="display:none;">
+          <h2 class="syne" style="font-size:22px;margin-bottom:4px;">Smart Funding Match</h2>
+          <p style="color:var(--text2);font-size:13px;margin-bottom:20px;">AI-powered matching by geography, focus area, and impact metrics.</p>
+          <div class="tb"><div class="tt on">🎯 Find Projects</div><div class="tt">👥 Find Funders</div></div>
+          <div class="mg" style="margin-bottom:24px;"><div class="mc"><div class="ms"><span class="mp">✨ 94%</span><span class="mi">Disease Prevention</span></div><div class="mt2">West Africa Malaria Genomic Surveillance Network</div><div class="mm">📍 Ghana, Nigeria · 💵 200K</div><button class="btn btn-p btn-sm">⚡ Connect</button></div><div class="mc"><div class="ms"><span class="mp">✨ 87%</span><span class="mi">Climate</span></div><div class="mt2">Southern Africa Agroforestry Carbon Index</div><div class="mm">📍 Zimbabwe, Zambia · 💵 140K</div><button class="btn btn-p btn-sm">⚡ Connect</button></div><div class="mc"><div class="ms"><span class="mp">✨ 81%</span><span class="mi">Water Security</span></div><div class="mt2">Sahel Community Water Access Monitoring Grid</div><div class="mm">📍 Mali, Niger · 💵 95K</div><button class="btn btn-p btn-sm">⚡ Connect</button></div></div>
+          <h3 class="syne" style="font-size:16px;margin-bottom:12px;">🔔 Funding Calls &amp; Solicitations</h3>
+          <div class="rfp"><div class="rfp-h"><span class="rft rfu">RFP ⚠ Urgent</span></div><div class="rfo">🏢 CEPI</div><div class="rftl">Pandemic Preparedness Genomic Surveillance</div><div class="rfts"><span class="rftt">Disease Surveillance</span><span class="rftt">Genomics</span></div><div class="rfF"><div><div class="rfam">💵 $200K–$2M</div><div class="rfdd">📅 12d left</div></div><button class="sdao">⚡ Sub-DAO</button></div></div>
+          <div class="rfp"><div class="rfp-h"><span class="rft">Grant</span></div><div class="rfo">🏢 African Development Bank</div><div class="rftl">Climate Adaptation Innovation Fund — East Africa</div><div class="rfts"><span class="rftt">Climate Adaptation</span><span class="rftt">Water</span></div><div class="rfF"><div><div class="rfam">💵 $100K–$1.5M</div><div class="rfdd">📅 45d left</div></div><button class="sdao">⚡ Sub-DAO</button></div></div>
+          <div class="rfp"><div class="rfp-h"><span class="rft">Tender</span></div><div class="rfo">🏢 Gavi, The Vaccine Alliance</div><div class="rftl">Digital Health Infrastructure — Francophone Africa</div><div class="rfts"><span class="rftt">Digital Health</span><span class="rftt">Vaccines</span></div><div class="rfF"><div><div class="rfam">💵 $500K–$5M</div><div class="rfdd">📅 38d left</div></div><button class="sdao">⚡ Sub-DAO</button></div></div>
+        </div>
+
+        <!-- DAO -->
+        <div id="tab-dao" style="display:none;">
+          <h2 class="syne" style="font-size:22px;margin-bottom:4px;">DAO Governance</h2>
+          <p style="color:var(--text2);font-size:13px;margin-bottom:20px;">Community-driven decision making for African science funding.</p>
+          <div class="sg"><div class="sc"><div class="sl">Total DAOs</div><div class="sv">8</div></div><div class="sc"><div class="sl">Capital raised</div><div class="sv">$3.2M</div><div class="sd">↑ +12.4% this quarter</div></div><div class="sc"><div class="sl">Active DAOs</div><div class="sv" style="color:var(--accent);">5</div></div><div class="sc"><div class="sl">Completed</div><div class="sv">3</div></div></div>
+          <div class="dg"><div class="dc"><div class="de">🌊</div><div style="display:flex;gap:6px;margin-bottom:6px;flex-wrap:wrap;"><span class="badge b-p">Proposal</span><span style="font-size:11px;color:var(--accent);background:rgba(93,187,138,.1);padding:2px 7px;border-radius:5px;">🟢 Active</span></div><div class="dt">East Africa Climate Adaptation DAO</div><div class="dd">Coordinating flood, drought, and water security projects across the Great Lakes region.</div><div class="dst"><span>🏛 <strong>Multi-sig</strong></span><span>👥 <strong>284</strong></span><span>💰 <strong>$1.8M</strong></span></div><div class="prog"><div class="pf" style="width:64%"></div></div><div class="df"><div class="sava">AM</div><span class="ch-b">Polygon</span></div></div><div class="dc"><div class="de">💊</div><div style="display:flex;gap:6px;margin-bottom:6px;"><span class="badge b-a">Ask</span><span style="font-size:11px;color:var(--accent);background:rgba(93,187,138,.1);padding:2px 7px;border-radius:5px;">🟢 Active</span></div><div class="dt">West Africa Health Surveillance DAO</div><div class="dd">Real-time disease surveillance with community health workers across 6 countries.</div><div class="dst"><span>🏛 <strong>Quadratic</strong></span><span>👥 <strong>156</strong></span><span>💰 <strong>$940K</strong></span></div><div class="prog"><div class="pf" style="width:47%"></div></div><div class="df"><div class="sava">KA</div><span class="ch-b">Celo</span></div></div><div class="dc"><div class="de">🌱</div><div style="display:flex;gap:6px;margin-bottom:6px;"><span class="badge b-p">Proposal</span><span style="font-size:11px;color:var(--accent);background:rgba(93,187,138,.1);padding:2px 7px;border-radius:5px;">🟢 Active</span></div><div class="dt">Sahel Agroforestry Carbon DAO</div><div class="dd">Carbon sequestration measurement and certification for agroforestry projects.</div><div class="dst"><span>👥 <strong>98</strong></span><span>💰 <strong>$320K</strong></span></div><div class="prog"><div class="pf" style="width:22%"></div></div><div class="df"><div class="sava">ZM</div><span class="ch-b">Polygon</span></div></div><div class="dc" style="opacity:.7;"><div class="de">💧</div><div style="display:flex;gap:6px;margin-bottom:6px;"><span class="badge b-p">Proposal</span><span style="font-size:11px;color:var(--text3);background:rgba(90,122,106,.15);padding:2px 7px;border-radius:5px;">✅ Completed</span></div><div class="dt">Niger Basin Desertification Reversal</div><div class="dd">Sahel desertification reversal pilot — all 5 milestones completed.</div><div class="dst"><span>👥 <strong>212</strong></span><span>💰 <strong>$3.2M</strong></span></div><div class="prog"><div class="pf" style="width:100%"></div></div><div class="df"><div class="sava">OD</div><span style="font-size:11px;color:var(--text3);">Dissolved</span></div></div></div>
+        </div>
+
+        <!-- INTELLIGENCE -->
+        <div id="tab-intel" style="display:none;">
+          <h2 class="syne" style="font-size:22px;margin-bottom:4px;">Intelligence Layer</h2>
+          <p style="color:var(--text2);font-size:13px;margin-bottom:20px;">AI-aggregated patterns, risk signals &amp; early-warning alerts from field data across Africa.</p>
+          <div class="sg"><div class="sc"><div class="sl">Patterns detected</div><div class="sv">342</div></div><div class="sc"><div class="sl">Critical alerts</div><div class="sv" style="color:var(--error);">3</div></div><div class="sc"><div class="sl">Data points today</div><div class="sv">7,728</div></div><div class="sc"><div class="sl">Regions covered</div><div class="sv">24</div></div></div>
+          <div class="tb"><div class="tt on">📊 Patterns</div><div class="tt">⚠️ Risk Signals</div><div class="tt">🚨 Alerts</div><div class="tt">🗄 Sources</div></div>
+          <div class="ig"><div class="ic"><span class="itr tr-r">↑ Rising</span><div class="it">Increased Vaccine Hesitancy in Rural East Africa</div><div class="id2">23% increase in hesitancy mentions across rural Kenya, Tanzania, Uganda over 60 days.</div><div class="cb"><div class="cf" style="width:87%"></div></div><div style="font-size:11px;color:var(--text3);margin-bottom:6px;">Confidence 87%</div><div class="dst2"><span class="dt2 dd-dao">45 DAO</span><span class="dt2 dd-fld">189 Field</span></div></div><div class="ic"><span class="itr tr-c">↑ Critical</span><div class="it">Drought-Driven Migration Corridors — Sahel</div><div class="id2">Three distinct corridors identified with increased movement toward coastal urban centers.</div><div class="cb"><div class="cf" style="width:92%"></div></div><div style="font-size:11px;color:var(--text3);margin-bottom:6px;">Confidence 92%</div><div class="dst2"><span class="dt2 dd-dao">78 DAO</span><span class="dt2 dd-fld">312 Field</span></div></div></div>
+          <div style="margin-top:16px;"><div class="ac ac-crit" style="margin-bottom:10px;"><div class="ac-h"><span class="ac-t" style="color:var(--error);">🚨 IMMEDIATE · Disease</span><span class="ac-tm">2h ago</span></div><div style="font-size:14px;font-weight:600;margin-bottom:6px;">Suspected Cholera Outbreak — DRC Border Region</div><div style="font-size:12px;color:var(--text2);">Early-warning signals indicate developing outbreak. 12,000+ at risk within 72 hours.</div></div><div class="ac ac-warn"><div class="ac-h"><span class="ac-t" style="color:var(--golden);">⚡ DEVELOPING · Climate</span><span class="ac-tm">6h ago</span></div><div style="font-size:14px;font-weight:600;margin-bottom:6px;">Drought-Triggered Food Crisis — Sahel Region</div><div style="font-size:12px;color:var(--text2);">Satellite + ground truth confirms accelerating food insecurity across Mali, Niger, Burkina Faso.</div></div></div>
+        </div>
+
+        <!-- COMMUNITY -->
+        <div id="tab-community" style="display:none;">
+          <h2 class="syne" style="font-size:22px;margin-bottom:4px;">Community</h2>
+          <p style="color:var(--text2);font-size:13px;margin-bottom:20px;">Researchers, funders &amp; practitioners collaborating across Africa.</p>
+          <div class="tb"><div class="tt on">Feed</div><div class="tt">Members</div><div class="tt">Researchers</div><div class="tt">Funders</div></div>
+          <div class="cs">
+            <div>
+              <div id="cFeed">
+                <div class="post-c"><div class="post-h"><div class="sava">KA</div><div><div class="pau">Dr. Kwame Asante</div><div class="paf">Researcher · University of Ghana · 2h ago</div></div><span class="pr pr-r">Researcher</span></div><div class="post-txt">Just completed our field assessment in the Northern Region. The malaria surveillance system is showing promising results — early detection rates up by 40% compared to last year. 🦟📊</div><div class="post-acts"><span class="pa" onclick="likePost(this)">🤍 <span>47</span></span><span class="pa">💬 <span>2</span></span><span class="pa">↗ Share</span></div><div class="cmt-area"><div class="cmt-it"><div class="cav" style="background:linear-gradient(135deg,var(--primary),var(--accent));">FE</div><div class="ctxt">Incredible progress! Would love to discuss funding opportunities for scaling this.</div></div></div></div>
+                <div class="post-c"><div class="post-h"><div class="sava">AM</div><div><div class="pau">Amina Mwangi</div><div class="paf">Climate Researcher · Kenya · 1d ago</div></div><span class="pr pr-d">DAO Lead</span></div><div class="post-txt">Our DAO just passed Proposal #NXT-047 🎉 East Africa Flood Early Warning System moves to funding phase. Thank you to the 1,842 community members who voted. This is decentralized science at scale. 🌍</div><div class="post-acts"><span class="pa" onclick="likePost(this)">🤍 <span>128</span></span><span class="pa">💬 <span>24</span></span><span class="pa">↗ Share</span></div></div>
+              </div>
+              <div class="card" style="margin-top:16px;"><div class="pt">Post to Community</div><textarea class="fi" id="newPost" placeholder="Share a research update, milestone, or ask for support…" style="min-height:80px;resize:vertical;margin-bottom:10px;"></textarea><button class="btn btn-p btn-sm" onclick="submitPost()">Post Update</button></div>
+            </div>
+            <div class="side-col">
+              <div class="card"><div class="pt">Suggested Members</div>
+                <div class="lb-it"><div class="sava" style="width:30px;height:30px;font-size:10px;">AM</div><div style="flex:1;"><div style="font-size:13px;font-weight:500;">Amina Mwangi</div><div style="font-size:11px;color:var(--text3);">Climate · Kenya</div></div><button class="btn btn-o btn-sm">Connect</button></div>
+                <div class="lb-it"><div class="sava" style="width:30px;height:30px;font-size:10px;">KA</div><div style="flex:1;"><div style="font-size:13px;font-weight:500;">Dr. Kwame Asante</div><div style="font-size:11px;color:var(--text3);">Malaria · Ghana</div></div><button class="btn btn-o btn-sm">Connect</button></div>
+                <div class="lb-it"><div class="sava" style="width:30px;height:30px;font-size:10px;">ZM</div><div style="flex:1;"><div style="font-size:13px;font-weight:500;">Zanele Mokoena</div><div style="font-size:11px;color:var(--text3);">Agroforestry · Zimbabwe</div></div><button class="btn btn-o btn-sm">Connect</button></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- PROFILE -->
+        <div id="tab-profile" style="display:none;">
+          <h2 class="syne" style="font-size:22px;margin-bottom:16px;">Profile</h2>
+          <div class="prof-hero"><div class="prof-top"><div class="pava" id="profAva">NT</div><div><div class="pname" id="profName">Member</div><div class="psub" id="profSub">NexTerra Platform</div><div class="ploc" id="profLoc">📍 Africa</div></div></div><div class="pacts"><button class="btn btn-o btn-sm">📄 Submit Proposal</button><button class="btn btn-o btn-sm">❓ Submit Ask</button><button class="btn btn-o btn-sm">✏️ Edit Profile</button></div></div>
+          <div class="card" style="margin-bottom:14px;"><div class="pt">Credibility Score</div><div style="font-size:30px;font-weight:700;font-family:'Syne',sans-serif;color:var(--primary);margin-bottom:4px;" id="credSc">50<span style="font-size:14px;color:var(--text3);font-family:'DM Sans'"> / 100</span></div><div style="font-size:12px;color:var(--text3);margin-bottom:14px;" id="credLb">New member</div><div class="cred-r"><span class="cred-l">Past Funded Work</span><div class="cred-tr"><div class="cred-f" style="width:50%"></div></div><span class="cred-v">50</span></div><div class="cred-r"><span class="cred-l">DAO Participation</span><div class="cred-tr"><div class="cred-f" style="width:50%"></div></div><span class="cred-v">50</span></div><div class="cred-r"><span class="cred-l">Reporting Compliance</span><div class="cred-tr"><div class="cred-f" style="width:50%"></div></div><span class="cred-v">50</span></div></div>
+          <div class="card"><div class="pt">Settings</div><div style="display:flex;flex-direction:column;"><div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);font-size:13px;cursor:pointer;">🔔 Notifications <span style="color:var(--primary);">›</span></div><div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);font-size:13px;cursor:pointer;">🛡 KYC/AML Status <span style="color:var(--accent);">Verified ›</span></div><div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;font-size:13px;cursor:pointer;">🧠 Intelligence Access <span style="color:var(--primary);">›</span></div></div><button class="btn btn-d btn-sm" style="margin-top:14px;width:100%;" onclick="doSignOut()">Sign Out</button></div>
+        </div>
+
+      </main>
+    </div>
+  </div>
+  <nav class="bot-nav"><div class="bn-items"><div class="bn-item active" onclick="showTab('vote',this,1)"><span class="bn-ico">🗳</span>Vote</div><div class="bn-item" onclick="showTab('fund',this,1)"><span class="bn-ico">💰</span>Fund</div><div class="bn-item" onclick="showTab('match',this,1)"><span class="bn-ico">✨</span>Match</div><div class="bn-item" onclick="showTab('dao',this,1)"><span class="bn-ico">🏛</span>DAO</div><div class="bn-item" onclick="showTab('intel',this,1)"><span class="bn-ico">🧠</span>Intel<span class="bn-badge">3</span></div><div class="bn-item" onclick="showTab('community',this,1)"><span class="bn-ico">👥</span>Community</div><div class="bn-item" onclick="showTab('profile',this,1)"><span class="bn-ico">👤</span>Profile</div></div></nav>
+</div>
+
+<script>
+const { createClient } = supabase;
+const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+let cUser=null, cProf=null, selRole='';
+
+function toast(msg,t){const el=document.getElementById('toast');el.textContent=msg;el.className='toast show '+(t==='err'?'t-err':'t-ok');setTimeout(()=>el.classList.remove('show'),3200);}
+
+// ── AUTH TAB SWITCH ──
+function showAuthTab(t){
+  document.getElementById('tab-su').classList.toggle('on',t==='su');
+  document.getElementById('tab-si').classList.toggle('on',t==='si');
+  document.getElementById('form-su').style.display=t==='su'?'':'none';
+  document.getElementById('form-si').style.display=t==='si'?'':'none';
+}
+
+// ── SIGNUP STEPS ──
+function selRole(el,role){document.querySelectorAll('.role-card').forEach(c=>c.classList.remove('on'));el.classList.add('on');selRole=role;document.getElementById('btn-s1').disabled=false;}
+function goStp(n){
+  if(n===3){
+    if(!document.getElementById('su-em').value.trim()||!document.getElementById('su-fn').value.trim()){toast('Please fill in your name and email','err');return;}
+  }
+  [1,2,3].forEach(i=>{const el=document.getElementById('step'+i);if(el)el.style.display=i===n?'':'none';});
+  const lbs=['Step 1 of 3 — Your role','Step 2 of 3 — Your details','Step 3 of 3 — Security'];
+  document.getElementById('sdlbl').textContent=lbs[n-1];
+  ['sd1','sd2','sd3'].forEach((id,i)=>{document.getElementById(id).className='sdot'+(i+1===n?' on':i+1<n?' done':'');});
+}
+function chkPwd(v){
+  const bars=['pb1','pb2','pb3','pb4'].map(id=>document.getElementById(id));
+  const score=(v.length>=8?1:0)+(v.length>=12?1:0)+(/[A-Z]/.test(v)&&/[0-9]/.test(v)?1:0)+(/[^A-Za-z0-9]/.test(v)?1:0);
+  const cls=score<=1?'weak':score<=2?'medium':'strong';
+  bars.forEach((b,i)=>{b.className='pb'+(i<score?' '+cls:'');});
+}
+
+// ── REAL SIGN UP ──
+async function doSignUp(){
+  if(!document.getElementById('terms').checked){toast('Please agree to the Terms of Service','err');return;}
+  const fn=document.getElementById('su-fn').value.trim();
+  const ln=document.getElementById('su-ln').value.trim();
+  const em=document.getElementById('su-em').value.trim();
+  const pw=document.getElementById('su-pw').value;
+  const pw2=document.getElementById('su-pw2').value;
+  const errEl=document.getElementById('su-err');
+  errEl.style.display='none';
+  if(!fn||!em||!pw){errEl.textContent='Please fill in all required fields.';errEl.style.display='block';return;}
+  if(pw!==pw2){errEl.textContent='Passwords do not match.';errEl.style.display='block';return;}
+  if(pw.length<8){errEl.textContent='Password must be at least 8 characters.';errEl.style.display='block';return;}
+  document.getElementById('su-load').style.display='block';
+  const{data,error}=await sb.auth.signUp({
+    email:em,password:pw,
+    options:{data:{full_name:fn+' '+ln,role:selRole||'Researcher',country:document.getElementById('su-co').value,affiliation:document.getElementById('su-af').value}}
+  });
+  document.getElementById('su-load').style.display='none';
+  if(error){errEl.textContent=error.message;errEl.style.display='block';return;}
+  document.getElementById('step3').style.display='none';
+  document.getElementById('step-ok').style.display='';
+  ['sd1','sd2','sd3'].forEach(id=>document.getElementById(id).className='sdot done');
+  document.getElementById('sdlbl').textContent='Account created!';
+}
+
+// ── REAL SIGN IN ──
+async function doSignIn(){
+  const em=document.getElementById('si-em').value.trim();
+  const pw=document.getElementById('si-pw').value;
+  const errEl=document.getElementById('si-err');
+  errEl.style.display='none';
+  if(!em||!pw){errEl.textContent='Please enter your email and password.';errEl.style.display='block';return;}
+  document.getElementById('si-load').style.display='block';
+  const{data,error}=await sb.auth.signInWithPassword({email:em,password:pw});
+  document.getElementById('si-load').style.display='none';
+  if(error){errEl.textContent=error.message;errEl.style.display='block';return;}
+  enterApp();
+}
+
+// ── SOCIAL AUTH ──
+async function socialAuth(provider){
+  const{error}=await sb.auth.signInWithOAuth({provider,options:{redirectTo:window.location.href}});
+  if(error)toast('OAuth error: '+error.message,'err');
+}
+
+// ── FORGOT PASSWORD ──
+async function doForgot(){
+  const em=document.getElementById('si-em').value.trim();
+  if(!em){toast('Enter your email first','err');return;}
+  const{error}=await sb.auth.resetPasswordForEmail(em,{redirectTo:window.location.href});
+  if(error)toast('Error: '+error.message,'err');
+  else toast('Password reset email sent ✓','ok');
+}
+
+// ── SIGN OUT ──
+async function doSignOut(){
+  await sb.auth.signOut();
+  cUser=null;cProf=null;
+  document.getElementById('mainApp').style.display='none';
+  document.getElementById('authPage').style.display='flex';
+  showAuthTab('si');
+  toast('Signed out successfully','ok');
+}
+
+// ── ENTER APP ──
+function enterApp(){
+  document.getElementById('authPage').style.display='none';
+  document.getElementById('mainApp').style.display='';
+}
+
+// ── LOAD PROFILE ──
+async function loadProfile(uid){
+  const{data}=await sb.from('profiles').select('*').eq('id',uid).single();
+  if(!data)return;
+  cProf=data;
+  const ini=data.avatar_initials||(data.full_name?data.full_name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2):'NT');
+  const name=data.full_name||'Member';
+  const role=data.role||'Member';
+  const score=data.credibility_score||50;
+  ['sbAva','topAva','mAva','profAva'].forEach(id=>document.getElementById(id).textContent=ini);
+  document.getElementById('sbName').textContent=name;
+  document.getElementById('sbRole').textContent=role;
+  document.getElementById('sbScore').textContent=score;
+  document.getElementById('profName').textContent=name;
+  document.getElementById('profSub').textContent=role+(data.affiliation?' · '+data.affiliation:'');
+  document.getElementById('profLoc').textContent=data.country?'📍 '+data.country:'📍 Africa';
+  document.getElementById('credSc').innerHTML=score+'<span style="font-size:14px;color:var(--text3);font-family:\'DM Sans\'"> / 100</span>';
+  document.getElementById('credLb').textContent=score>=80?'Highly Credible':score>=60?'Credible Member':'New Member';
+  document.getElementById('walId').textContent='NXT-0x'+uid.slice(0,8)+'...';
+}
+
+// ── SUPABASE AUTH LISTENER (runs on page load) ──
+sb.auth.onAuthStateChange(async(event,session)=>{
+  if(session?.user){
+    cUser=session.user;
+    await loadProfile(session.user.id);
+    enterApp();
+  }
+  // No session → auth page stays visible (it's the default)
+});
+
+// ── APP NAV ──
+function showTab(name,el,mob){
+  document.querySelectorAll('[id^="tab-"]').forEach(t=>t.style.display='none');
+  document.getElementById('tab-'+name).style.display='';
+  if(!mob){document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));if(el)el.classList.add('active');}
+  else{document.querySelectorAll('.bn-item').forEach(n=>n.classList.remove('active'));if(el)el.classList.add('active');}
+  closeSB();
+}
+function openSB(){document.getElementById('sidebar').classList.add('open');document.getElementById('sbOverlay').classList.add('open');}
+function closeSB(){document.getElementById('sidebar').classList.remove('open');document.getElementById('sbOverlay').classList.remove('open');}
+
+// ── INTERACTIONS ──
+function castVote(btn,dir){
+  if(!cUser){toast('Sign in to vote','err');return;}
+  btn.closest('.pc').querySelectorAll('.va .btn').forEach(b=>{b.disabled=true;b.style.opacity='.5';});
+  toast(dir==='for'?'✓ Vote cast — For':'✗ Vote cast — Against','ok');
+}
+function wAction(type){
+  if(!cUser){toast('Sign in to manage wallet','err');return;}
+  const msgs={deposit:'LinkPay deposit — API key needed to go live',fund:'Select a proposal to fund',withdraw:'LinkPay withdrawal — API key needed to go live'};
+  toast(msgs[type]||'Coming soon','ok');
+}
+function likePost(el){
+  if(!cUser){toast('Sign in to like posts','err');return;}
+  const c=el.querySelector('span');c.textContent=parseInt(c.textContent)+1;
+  el.innerHTML='❤️ <span>'+c.textContent+'</span>';
+}
+async function submitPost(){
+  if(!cUser){toast('Sign in to post','err');return;}
+  const content=document.getElementById('newPost').value.trim();
+  if(!content){toast('Please write something first','err');return;}
+  const{data,error}=await sb.from('posts').insert({user_id:cUser.id,content}).select().single();
+  if(error){toast('Error: '+error.message,'err');return;}
+  document.getElementById('newPost').value='';
+  const ini=cProf?.avatar_initials||'ME';
+  const name=cProf?.full_name||'You';
+  const el=document.createElement('div');
+  el.className='post-c';
+  el.innerHTML=`<div class="post-h"><div class="sava">${ini}</div><div><div class="pau">${name}</div><div class="paf">Just now</div></div></div><div class="post-txt">${content}</div><div class="post-acts"><span class="pa" onclick="likePost(this)">🤍 <span>0</span></span><span class="pa">💬 <span>0</span></span></div>`;
+  document.getElementById('cFeed').prepend(el);
+  toast('Post shared ✓','ok');
+}
+</script>
+</body>
+</html>
