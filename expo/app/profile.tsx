@@ -32,7 +32,9 @@ import {
   CreditCard,
   Smartphone,
   ExternalLink,
+  ChevronLeft,
   ChevronRight,
+  Globe,
   Calendar,
   Building,
   Building2,
@@ -61,6 +63,8 @@ import {
   MoreHorizontal,
   } from 'lucide-react-native';
 import Colors from '@/constants/colors';
+import { WEBSITE_URL } from '@/constants/website';
+import * as WebBrowser from 'expo-web-browser';
 import CredibilityScore from '@/components/CredibilityScore';
 import { nxtTokenService } from '@/services/nxtToken';
 import TrustImpactCard from '@/components/TrustImpactCard';
@@ -649,7 +653,17 @@ export default function ProfileScreen() {
 
   return (
     <View style={styles.container}>
-
+      <View style={[styles.headerBar, { paddingTop: insets.top + 8 }]}>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => router.replace('/')}
+          testID="profile-back-button"
+          activeOpacity={0.7}
+        >
+          <ChevronLeft size={24} color={Colors.text} />
+          <Text style={styles.backButtonText}>Home</Text>
+        </TouchableOpacity>
+      </View>
 
       <ScrollView
         style={styles.content}
@@ -808,6 +822,33 @@ export default function ProfileScreen() {
                 </View>
               </TouchableOpacity>
             </View>
+
+            <TouchableOpacity
+              style={styles.websiteCard}
+              testID="visit-website-button"
+              activeOpacity={0.8}
+              onPress={async () => {
+                try {
+                  await WebBrowser.openBrowserAsync(WEBSITE_URL, {
+                    toolbarColor: Colors.background,
+                    controlsColor: Colors.primary,
+                  });
+                } catch (error) {
+                  console.log('Error opening website:', error);
+                }
+              }}
+            >
+              <View style={styles.websiteCardLeft}>
+                <View style={styles.websiteIconContainer}>
+                  <Globe size={24} color={Colors.primary} />
+                </View>
+                <View style={styles.websiteCardContent}>
+                  <Text style={styles.websiteCardTitle}>Visit NexTerra Website</Text>
+                  <Text style={styles.websiteCardSubtitle}>nexterra-app.vercel.app</Text>
+                </View>
+              </View>
+              <ExternalLink size={18} color={Colors.primary} />
+            </TouchableOpacity>
           </>
         )}
 
@@ -1710,13 +1751,22 @@ const styles = StyleSheet.create({
     borderBottomColor: Colors.border,
     backgroundColor: Colors.background,
   },
+  headerBar: {
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    paddingHorizontal: 16,
+    paddingBottom: 12,
+    backgroundColor: Colors.background,
+  },
   backButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: Colors.card,
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    gap: 4,
+  },
+  backButtonText: {
+    fontSize: 16,
+    fontWeight: '500' as const,
+    color: Colors.text,
   },
   headerTitle: {
     fontSize: 18,
@@ -3212,5 +3262,44 @@ const styles = StyleSheet.create({
   sendButtonDisabled: {
     backgroundColor: Colors.textMuted,
     opacity: 0.5,
+  },
+  websiteCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: Colors.card,
+    marginHorizontal: 20,
+    marginTop: 20,
+    padding: 16,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: `${Colors.primary}30`,
+  },
+  websiteCardLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  websiteIconContainer: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    backgroundColor: `${Colors.primary}15`,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  websiteCardContent: {
+    marginLeft: 14,
+    flex: 1,
+  },
+  websiteCardTitle: {
+    fontSize: 15,
+    fontWeight: '700' as const,
+    color: Colors.text,
+  },
+  websiteCardSubtitle: {
+    fontSize: 12,
+    color: Colors.textSecondary,
+    marginTop: 2,
   },
 });
