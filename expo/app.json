@@ -24,16 +24,15 @@
       },
       "package": "app.rork.nextera_app"
     },
-  "web": {
-  "favicon": "./assets/images/favicon.png",
-  "output": "static",
-  "bundler": "metro"
-},
+    "web": {
+      "favicon": "./assets/images/favicon.png",
+      "output": "static"
+    },
     "plugins": [
       [
         "expo-router",
         {
-          "origin": "https://rork.com/"
+          "origin": "https://nexterra-app.vercel.app"
         }
       ],
       "expo-font",
