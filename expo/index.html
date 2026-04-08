@@ -33,6 +33,8 @@ html,body{min-height:100vh;background:var(--bg);color:var(--text);font-family:-a
 .screen{display:none;}
 .screen.active{display:flex;flex-direction:column;min-height:100vh;}
 #screen-auth{flex-direction:row;min-height:100vh;}
+/* Auth screen shows by default until JS runs */
+#screen-auth{display:flex;}
 
 /* ══════════════════════════════════════════
    TOAST
@@ -431,6 +433,123 @@ i[data-lucide] { display: inline-block; vertical-align: middle; }
 </div>
 
 <!-- ═══════════════════════════════════════════════════════
+     DEPOSIT MODAL
+═══════════════════════════════════════════════════════ -->
+<div id="deposit-modal" style="display:none;" class="modal-overlay">
+  <div class="modal-box">
+    <h3>💰 Deposit Funds</h3>
+    <p style="font-size:13px;color:var(--text2);margin-bottom:16px;">Add funds to your AkoPay wallet to start funding research.</p>
+    <div class="form-group">
+      <label class="form-label">Amount (USD)</label>
+      <input class="input" type="number" id="deposit-amount" placeholder="0.00" min="1"/>
+    </div>
+    <div class="payment-methods">
+      <div class="pay-method on" onclick="selectPayMethod(this,'mtn')">📱 MTN MoMo</div>
+      <div class="pay-method" onclick="selectPayMethod(this,'airtel')">📱 Airtel Money</div>
+      <div class="pay-method" onclick="selectPayMethod(this,'visa')">💳 VISA/Mastercard</div>
+      <div class="pay-method" onclick="selectPayMethod(this,'bank')">🏦 Bank Transfer</div>
+    </div>
+    <div class="form-group" id="deposit-card-details" style="display:none;">
+      <label class="form-label">Card Number</label>
+      <input class="input" type="text" placeholder="•••• •••• •••• ••••" maxlength="19" id="dep-card-num"/>
+      <div class="input-row" style="margin-top:10px;">
+        <div class="form-group"><label class="form-label">Expiry</label><input class="input" type="text" placeholder="MM/YY" maxlength="5" id="dep-card-exp"/></div>
+        <div class="form-group"><label class="form-label">CVV</label><input class="input" type="text" placeholder="•••" maxlength="4" id="dep-card-cvv"/></div>
+      </div>
+    </div>
+    <div class="form-group" id="deposit-momo-details">
+      <label class="form-label">Mobile Number</label>
+      <input class="input" type="tel" placeholder="+254 712 345 678" id="dep-phone"/>
+    </div>
+    <button class="btn-submit" onclick="confirmDeposit()">Deposit Funds</button>
+    <button onclick="document.getElementById('deposit-modal').style.display='none'" style="width:100%;background:none;border:none;color:var(--text3);font-size:13px;cursor:pointer;padding:8px;">Cancel</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     WITHDRAW MODAL
+═══════════════════════════════════════════════════════ -->
+<div id="withdraw-modal" style="display:none;" class="modal-overlay">
+  <div class="modal-box">
+    <h3>⬆️ Withdraw Funds</h3>
+    <p style="font-size:13px;color:var(--text2);margin-bottom:16px;">Withdraw funds from your AkoPay wallet to your bank or mobile money account.</p>
+    <div class="form-group">
+      <label class="form-label">Amount (USD)</label>
+      <input class="input" type="number" id="withdraw-amount" placeholder="0.00" min="1"/>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Withdraw to</label>
+      <select class="input select" id="withdraw-method" onchange="updateWithdrawUI()">
+        <option value="mtn">📱 MTN MoMo</option>
+        <option value="airtel">📱 Airtel Money</option>
+        <option value="bank">🏦 Bank Transfer</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label" id="withdraw-dest-label">Mobile Number</label>
+      <input class="input" type="text" placeholder="+254 712 345 678" id="withdraw-dest"/>
+    </div>
+    <button class="btn-submit" onclick="confirmWithdraw()">Withdraw Funds</button>
+    <button onclick="document.getElementById('withdraw-modal').style.display='none'" style="width:100%;background:none;border:none;color:var(--text3);font-size:13px;cursor:pointer;padding:8px;">Cancel</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     SUBMIT PROPOSAL MODAL
+═══════════════════════════════════════════════════════ -->
+<div id="proposal-modal" style="display:none;" class="modal-overlay">
+  <div class="modal-box">
+    <h3>📄 Submit a Proposal</h3>
+    <p style="font-size:13px;color:var(--text2);margin-bottom:16px;">Submit your research proposal for DAO community voting and funding.</p>
+    <div class="form-group"><label class="form-label">Title</label><input class="input" id="prop-title" type="text" placeholder="e.g. East Africa Flood Early Warning Network"/></div>
+    <div class="form-group">
+      <label class="form-label">Type</label>
+      <select class="input select" id="prop-type">
+        <option value="proposal">Proposal (Funding Request)</option>
+        <option value="ask">Ask (Emergency / Urgent)</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Category</label>
+      <select class="input select" id="prop-category">
+        <option value="climate">Climate & Environment</option>
+        <option value="health">Health & Disease</option>
+        <option value="water">Water & Infrastructure</option>
+        <option value="research">General Research</option>
+        <option value="agriculture">Agriculture</option>
+        <option value="energy">Energy</option>
+      </select>
+    </div>
+    <div class="form-group"><label class="form-label">Location / Regions</label><input class="input" id="prop-location" type="text" placeholder="e.g. Kenya, Uganda, Tanzania"/></div>
+    <div class="form-group"><label class="form-label">Funding Goal (USDC)</label><input class="input" id="prop-funding" type="number" placeholder="e.g. 250000" min="1000"/></div>
+    <div class="form-group"><label class="form-label">Description</label><textarea class="input" id="prop-desc" rows="4" style="resize:vertical;" placeholder="Describe your project, methodology, expected outcomes and community impact…"></textarea></div>
+    <div class="form-group"><label class="form-label">Organisation / Institution</label><input class="input" id="prop-org" type="text" placeholder="e.g. University of Nairobi"/></div>
+    <button class="btn-submit" onclick="submitProposal()">Submit Proposal for Voting</button>
+    <button onclick="document.getElementById('proposal-modal').style.display='none'" style="width:100%;background:none;border:none;color:var(--text3);font-size:13px;cursor:pointer;padding:8px;">Cancel</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     EDIT PROFILE MODAL
+═══════════════════════════════════════════════════════ -->
+<div id="edit-profile-modal" style="display:none;" class="modal-overlay">
+  <div class="modal-box">
+    <h3>✏️ Edit Profile</h3>
+    <div class="form-group"><label class="form-label">Full Name</label><input class="input" id="edit-name" type="text"/></div>
+    <div class="form-group"><label class="form-label">Bio</label><textarea class="input" id="edit-bio" rows="3" style="resize:vertical;"></textarea></div>
+    <div class="form-group"><label class="form-label">Organisation</label><input class="input" id="edit-org" type="text"/></div>
+    <div class="form-group">
+      <label class="form-label">Country</label>
+      <select class="input select" id="edit-country">
+        <option>Kenya</option><option>Nigeria</option><option>Ghana</option><option>South Africa</option><option>Ethiopia</option><option>Tanzania</option><option>Uganda</option><option>Rwanda</option><option>Senegal</option><option>Côte d'Ivoire</option><option>Zimbabwe</option><option>Zambia</option><option>Malawi</option><option>Mali</option><option>Niger</option><option>Burkina Faso</option><option>DRC</option><option>Cameroon</option><option>Other</option>
+      </select>
+    </div>
+    <button class="btn-submit" onclick="saveProfile()">Save Changes</button>
+    <button onclick="document.getElementById('edit-profile-modal').style.display='none'" style="width:100%;background:none;border:none;color:var(--text3);font-size:13px;cursor:pointer;padding:8px;">Cancel</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
      SCREEN: AUTH
 ═══════════════════════════════════════════════════════ -->
 <div id="screen-auth" class="screen active">
@@ -645,9 +764,9 @@ i[data-lucide] { display: inline-block; vertical-align: middle; }
                 <div class="wallet-change">↑ +$320.00 this month</div>
                 <div class="wallet-id" id="wallet-id">NXT-WALLET-0x4a2f…c81d · Connected</div>
                 <div class="wallet-actions">
-                  <button class="wallet-btn" onclick="toast('Deposit flow coming — integrate AkoPay API')">⬇️ Deposit</button>
-                  <button class="wallet-btn" onclick="toast('Fund a project below')">⬆️ Fund</button>
-                  <button class="wallet-btn" onclick="toast('Withdrawal flow coming — integrate AkoPay API')">🏦 Withdraw</button>
+                  <button class="wallet-btn" onclick="openDepositModal()">⬇️ Deposit</button>
+                  <button class="wallet-btn" onclick="document.getElementById('proposals-list').scrollIntoView({behavior:'smooth'});goPage('vote')">⬆️ Fund Project</button>
+                  <button class="wallet-btn" onclick="openWithdrawModal()">🏦 Withdraw</button>
                 </div>
               </div>
               <!-- Quick stats -->
@@ -688,7 +807,7 @@ i[data-lucide] { display: inline-block; vertical-align: middle; }
                 <button class="stab" onclick="filterMatches('research',this)">Research</button>
               </div>
               <div id="match-list"><div class="loading"><div class="spinner"></div>Loading…</div></div>
-              <button class="btn btn-outline" style="width:100%;margin-top:10px;" onclick="toast('Upload your project profile to get matched')">➕ Upload New Project</button>
+              <button class="btn btn-outline" style="width:100%;margin-top:10px;" onclick="document.getElementById('proposal-modal').style.display='flex'">➕ Submit a Proposal</button>
             </div>
             <div>
               <div style="font-size:14px;font-weight:700;margin-bottom:12px;">🔔 Funding Calls &amp; RFPs</div>
@@ -741,7 +860,7 @@ i[data-lucide] { display: inline-block; vertical-align: middle; }
             <div class="card" style="margin-top:16px;">
               <div class="card-title">Submit a Proposal</div>
               <p style="font-size:13px;color:var(--text3);margin-bottom:14px;">Have a project that needs community governance? Submit a full proposal for DAO review.</p>
-              <button class="btn btn-primary" style="width:100%;" onclick="toast('Proposal submission form coming soon')">📄 Submit Proposal</button>
+              <button class="btn btn-primary" style="width:100%;" onclick="document.getElementById('proposal-modal').style.display='flex'">📄 Submit Proposal</button>
             </div>
           </div>
         </div>
@@ -835,8 +954,8 @@ i[data-lucide] { display: inline-block; vertical-align: middle; }
             <div class="profile-role" id="prof-role">DAO Lead · Researcher</div>
             <div class="profile-loc" id="prof-loc">📍 Nairobi, Kenya · Joined January 2024</div>
             <div style="display:flex;gap:16px;margin-top:16px;">
-              <button class="btn btn-primary" onclick="toast('Proposal form coming soon')">📄 Submit Proposal</button>
-              <button class="btn btn-outline" onclick="toast('Edit profile coming soon')">✏️ Edit Profile</button>
+              <button class="btn btn-primary" onclick="document.getElementById('proposal-modal').style.display='flex'">📄 Submit Proposal</button>
+              <button class="btn btn-outline" onclick="openEditProfile()">✏️ Edit Profile</button>
             </div>
           </div>
           <div style="text-align:center;">
@@ -1122,7 +1241,7 @@ function communityTab(tab, el) {
   el.classList.add('on');
   document.getElementById('comm-feed-panel').style.display = tab==='feed' ? '' : 'none';
   document.getElementById('comm-members-panel').style.display = tab==='members' ? '' : 'none';
-  if (tab==='members' && !document.getElementById('members-list').children.length) loadMembers();
+  if (tab==='members' && !document.getElementById('members-list').innerHTML.trim()) loadMembers();
 }
 
 /* ══════════════════════════════════════════
@@ -1268,7 +1387,7 @@ async function loadLeaderboard() {
 
 /* ─ INTELLIGENCE ─ */
 async function loadIntelligence() {
-  const { data } = await sb.from('intelligence_patterns').select('*').order('confidence_score',{ascending:false});
+  const { data } = await sb.from('intel_patterns').select('*').order('confidence_score',{ascending:false});
   allIntelPatterns = data?.length ? data : getDemoIntel();
   renderIntelPatterns(allIntelPatterns);
   renderIntelSidebar(allIntelPatterns);
@@ -1421,10 +1540,6 @@ function openFundModal(id, name, goal) {
   document.getElementById('fund-modal').style.display = 'flex';
 }
 function closeFundModal() { document.getElementById('fund-modal').style.display='none'; fundTarget=null; }
-function selectPayMethod(el, method) {
-  document.querySelectorAll('.pay-method').forEach(m=>m.classList.remove('on'));
-  el.classList.add('on'); selectedPayMethod = method;
-}
 async function confirmFund() {
   if (!currentUser) { toast('Sign in to fund projects.','err'); closeFundModal(); return; }
   const amount = parseFloat(document.getElementById('modal-amount').value);
@@ -1441,6 +1556,169 @@ async function confirmFund() {
     closeFundModal();
     loadTransactions();
   } catch(e) { toast(e.message,'err'); }
+}
+
+/* ─ DEPOSIT MODAL ─ */
+function openDepositModal() {
+  if (!currentUser) { toast('Sign in to deposit funds.','err'); return; }
+  document.getElementById('deposit-amount').value = '';
+  document.getElementById('dep-phone').value = '';
+  document.getElementById('deposit-modal').style.display = 'flex';
+  // Reset pay method selection
+  document.querySelectorAll('#deposit-modal .pay-method').forEach((m,i) => m.classList.toggle('on', i===0));
+  selectedPayMethod = 'mtn';
+  document.getElementById('deposit-card-details').style.display = 'none';
+  document.getElementById('deposit-momo-details').style.display = '';
+}
+
+function selectPayMethod(el, method) {
+  // Scope to the parent modal only
+  el.closest('.modal-box').querySelectorAll('.pay-method').forEach(m=>m.classList.remove('on'));
+  el.classList.add('on');
+  selectedPayMethod = method;
+  const cardDetails = document.getElementById('deposit-card-details');
+  const momoDetails = document.getElementById('deposit-momo-details');
+  if (cardDetails) cardDetails.style.display = (method==='visa') ? '' : 'none';
+  if (momoDetails) momoDetails.style.display = (method==='visa' || method==='bank') ? 'none' : '';
+}
+
+async function confirmDeposit() {
+  const amount = parseFloat(document.getElementById('deposit-amount').value);
+  if (!amount || amount <= 0) { toast('Enter a valid amount.','err'); return; }
+  if (!currentUser) { toast('Sign in to deposit.','err'); return; }
+  const btn = document.querySelector('#deposit-modal .btn-submit');
+  btn.disabled = true; btn.textContent = 'Processing…';
+  try {
+    const { error } = await sb.from('transactions').insert({
+      user_id: currentUser.id, amount, transaction_type: 'deposit',
+      payment_method: selectedPayMethod, status: 'pending',
+      description: `Deposit via ${selectedPayMethod.toUpperCase()}`
+    });
+    if (error) throw error;
+    // Update wallet balance optimistically
+    const balEl = document.getElementById('wallet-balance');
+    const profBalEl = document.getElementById('prof-balance');
+    const current = parseFloat((balEl.textContent||'0').replace(/,/g,'')) || 0;
+    const newBal = (current + amount).toLocaleString('en',{minimumFractionDigits:2});
+    balEl.textContent = newBal;
+    if (profBalEl) profBalEl.textContent = newBal;
+    toast(`$${amount.toLocaleString()} deposit submitted! Pending confirmation.`,'ok');
+    document.getElementById('deposit-modal').style.display = 'none';
+    loadTransactions();
+  } catch(e) { toast(e.message,'err'); }
+  btn.disabled = false; btn.textContent = 'Deposit Funds';
+}
+
+/* ─ WITHDRAW MODAL ─ */
+function openWithdrawModal() {
+  if (!currentUser) { toast('Sign in to withdraw funds.','err'); return; }
+  document.getElementById('withdraw-amount').value = '';
+  document.getElementById('withdraw-dest').value = '';
+  document.getElementById('withdraw-modal').style.display = 'flex';
+}
+
+function updateWithdrawUI() {
+  const method = document.getElementById('withdraw-method').value;
+  const label = document.getElementById('withdraw-dest-label');
+  const dest = document.getElementById('withdraw-dest');
+  if (method === 'bank') { label.textContent = 'Account Number / IBAN'; dest.placeholder = 'e.g. KE123456789'; }
+  else { label.textContent = 'Mobile Number'; dest.placeholder = '+254 712 345 678'; }
+}
+
+async function confirmWithdraw() {
+  const amount = parseFloat(document.getElementById('withdraw-amount').value);
+  const method = document.getElementById('withdraw-method').value;
+  const dest = document.getElementById('withdraw-dest').value.trim();
+  if (!amount || amount <= 0) { toast('Enter a valid amount.','err'); return; }
+  if (!dest) { toast('Enter your destination account.','err'); return; }
+  if (!currentUser) { toast('Sign in to withdraw.','err'); return; }
+  const btn = document.querySelector('#withdraw-modal .btn-submit');
+  btn.disabled = true; btn.textContent = 'Processing…';
+  try {
+    const { error } = await sb.from('transactions').insert({
+      user_id: currentUser.id, amount, transaction_type: 'withdrawal',
+      payment_method: method, status: 'pending',
+      description: `Withdrawal to ${dest}`
+    });
+    if (error) throw error;
+    toast(`Withdrawal of $${amount.toLocaleString()} submitted! 1–3 business days.`,'ok');
+    document.getElementById('withdraw-modal').style.display = 'none';
+    loadTransactions();
+  } catch(e) { toast(e.message,'err'); }
+  btn.disabled = false; btn.textContent = 'Withdraw Funds';
+}
+
+/* ─ SUBMIT PROPOSAL ─ */
+async function submitProposal() {
+  if (!currentUser) { toast('Sign in to submit a proposal.','err'); return; }
+  const title = document.getElementById('prop-title').value.trim();
+  const type = document.getElementById('prop-type').value;
+  const category = document.getElementById('prop-category').value;
+  const location = document.getElementById('prop-location').value.trim();
+  const funding_goal = parseFloat(document.getElementById('prop-funding').value);
+  const description = document.getElementById('prop-desc').value.trim();
+  const org = document.getElementById('prop-org').value.trim();
+  if (!title) { toast('Please enter a proposal title.','err'); return; }
+  if (!description) { toast('Please enter a description.','err'); return; }
+  if (!funding_goal || funding_goal < 1000) { toast('Minimum funding goal is $1,000.','err'); return; }
+  const btn = document.querySelector('#proposal-modal .btn-submit');
+  btn.disabled = true; btn.textContent = 'Submitting…';
+  try {
+    const { error } = await sb.from('proposals').insert({
+      title, type, category, location, funding_goal, description,
+      proposer_name: currentProfile?.full_name || 'Community Member',
+      proposer_org: org || currentProfile?.organisation || '',
+      created_by: currentUser.id, status: 'active',
+      votes_for: 0, votes_against: 0
+    });
+    if (error) throw error;
+    toast('Proposal submitted for community voting!','ok');
+    document.getElementById('proposal-modal').style.display = 'none';
+    // Reset form
+    ['prop-title','prop-location','prop-funding','prop-desc','prop-org'].forEach(id => document.getElementById(id).value = '');
+    loadProposals();
+  } catch(e) { toast(e.message,'err'); }
+  btn.disabled = false; btn.textContent = 'Submit Proposal for Voting';
+}
+
+/* ─ EDIT PROFILE ─ */
+function openEditProfile() {
+  if (!currentUser) { toast('Sign in to edit your profile.','err'); return; }
+  document.getElementById('edit-name').value = currentProfile?.full_name || '';
+  document.getElementById('edit-bio').value = currentProfile?.bio || '';
+  document.getElementById('edit-org').value = currentProfile?.organisation || '';
+  const countryEl = document.getElementById('edit-country');
+  if (currentProfile?.country) {
+    Array.from(countryEl.options).forEach(opt => { if (opt.value === currentProfile.country) countryEl.value = currentProfile.country; });
+  }
+  document.getElementById('edit-profile-modal').style.display = 'flex';
+}
+
+async function saveProfile() {
+  if (!currentUser) return;
+  const full_name = document.getElementById('edit-name').value.trim();
+  const bio = document.getElementById('edit-bio').value.trim();
+  const organisation = document.getElementById('edit-org').value.trim();
+  const country = document.getElementById('edit-country').value;
+  if (!full_name) { toast('Name is required.','err'); return; }
+  const btn = document.querySelector('#edit-profile-modal .btn-submit');
+  btn.disabled = true; btn.textContent = 'Saving…';
+  try {
+    const { error } = await sb.from('profiles').update({ full_name, bio, organisation, country }).eq('id', currentUser.id);
+    if (error) throw error;
+    currentProfile = { ...currentProfile, full_name, bio, organisation, country };
+    // Update UI
+    document.getElementById('prof-name').textContent = full_name;
+    document.getElementById('prof-bio').textContent = bio || 'NexTerra community member contributing to decentralized African science funding.';
+    document.getElementById('prof-role').textContent = [currentProfile.role, country].filter(Boolean).join(' · ');
+    document.getElementById('prof-loc').textContent = '📍 ' + (country||'Africa') + ' · Joined ' + new Date(currentProfile?.created_at||Date.now()).toLocaleDateString('en',{month:'long',year:'numeric'});
+    const initials = full_name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+    document.getElementById('prof-avatar').textContent = initials;
+    document.getElementById('nav-avatar').textContent = initials;
+    toast('Profile updated!','ok');
+    document.getElementById('edit-profile-modal').style.display = 'none';
+  } catch(e) { toast(e.message,'err'); }
+  btn.disabled = false; btn.textContent = 'Save Changes';
 }
 
 /* ─ MATCHES ─ */
@@ -1766,6 +2044,10 @@ async function loadSuggestedMembers() {
    SESSION CHECK ON LOAD
 ══════════════════════════════════════════ */
 (async function init() {
+  // Always start on auth screen
+  showScreen('screen-auth');
+  showAuthTab('signin');
+
   const { data: { session } } = await sb.auth.getSession();
   if (session?.user) {
     currentUser = session.user;
@@ -1779,6 +2061,7 @@ async function loadSuggestedMembers() {
     } else if (event==='SIGNED_OUT') {
       currentUser = null; currentProfile = null;
       showScreen('screen-auth');
+      showAuthTab('signin');
     }
   });
 })();
