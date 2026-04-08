@@ -1,1 +1,977 @@
-# NexTerra Platform — Master Development Index ### Decentralized Science Funding, Governance & Intelligence Infrastructure for Africa > **Maintainer:** Dr. Nichar Gregory, PhD — CEO & Founder > **Live App:** https://nexterra-app.vercel.app > **Stack:** Expo / React Native + TypeScript · Hono.js + tRPC · Supabase (PostgreSQL) · Vercel > **Target Launch:** October 31, 2026 --- ## Table of Contents 1. [Project Overview](#1-project-overview) 2. [Repository Structure](#2-repository-structure) 3. [Current State Audit](#3-current-state-audit) 4. [Complete Gap Analysis — What's Missing](#4-complete-gap-analysis--whats-missing) 5. [All Required APIs & Integrations](#5-all-required-apis--integrations) 6. [Missing Supabase Database Schema](#6-missing-supabase-database-schema) 7. [Feature Implementation Checklist](#7-feature-implementation-checklist) 8. [Priority Build Order](#8-priority-build-order) 9. [Environment Variables Master List](#9-environment-variables-master-list) 10. [Smart Contract Integration Guide](#10-smart-contract-integration-guide) 11. [AkoPay Integration Specification](#11-akopay-integration-specification) 12. [AI Intelligence Layer Specification](#12-ai-intelligence-layer-specification) 13. [KYC/AML Flow Specification](#13-kycaml-flow-specification) 14. [Milestone & Disbursement Engine Specification](#14-milestone--disbursement-engine-specification) 15. [NXT Token Dashboard Specification](#15-nxt-token-dashboard-specification) 16. [Enterprise/Government Dashboard Specification](#16-enterprisegovernment-dashboard-specification) 17. [Testing Strategy](#17-testing-strategy) 18. [Deployment Checklist](#18-deployment-checklist) 19. [Contributing Guidelines](#19-contributing-guidelines) --- ## 1. Project Overview NexTerra is the first DAO-native decentralized science funding, governance, and intelligence platform purpose-built for Africa — beginning with One Health research and expanding across the Global South. **Core Value Proposition:** Convert fragmented, opaque science funding into a real-time, community-governed, AI-powered capital deployment engine — eliminating intermediaries, enforcing accountability through code, and transforming funded field work into trusted intelligence used by governments, DFIs, insurers, and the private sector. **What the platform does (business plan spec):** - DAO governance hierarchy (Parent DAO + programmatic Sub-DAOs) - Milestone-based capital disbursement via AkoPay fiat rails (1.25% FX vs 8.2% industry) - NXT token: 100M fixed supply, capital recycling model, governance + access utility - AI intelligence layer: RVF early warning, pattern detection, research-funder matching - 8 production smart contracts: proposalRegistry, votingEngine, escrowManager, disbursementManager, reportingEnforcement, auditTrail, permissionManager, paymentRails - KYC/AML tiered onboarding (Tier 0–3 via AkoPay + Smile Identity) - Enterprise/government intelligence dashboards ($50K–$300K/yr) - Research marketplace with IPFS decentralized storage - Field knowledge capture with geo-tagging - Credibility scoring v2 (multi-signal reputation) --- ## 2. Repository Structure ``` nexterra-app-main/ ├── app/ # Expo Router screens │ ├── (tabs)/ # Bottom tab navigator │ │ ├── index.tsx # Home/intelligence feed │ │ ├── fund.tsx # Funding calls & portfolio │ │ ├── dao.tsx # DAO governance hub │ │ └── match.tsx # AI-powered funder-project matching │ ├── intelligence/ # Intelligence module screens │ ├── vote/[id].tsx # Proposal voting detail │ ├── submit-proposal.tsx # Proposal submission form │ ├── profile.tsx # User profile + KYC status │ ├── economics.tsx # NXT token dashboard │ ├── field-knowledge.tsx # Field observation capture │ ├── research/[id].tsx # Research marketplace item │ └── ... # 70+ total screens ├── components/ # Reusable UI components ├── services/ │ ├── daoContract/ # Smart contract service layer │ │ ├── proposalRegistry.ts # ⚠️ MOCK — needs real contract calls │ │ ├── votingEngine.ts # ⚠️ MOCK — needs wagmi hooks │ │ ├── escrowManager.ts # ⚠️ MOCK — needs real escrow │ │ ├── disbursementManager.ts# ⚠️ MOCK — needs AkoPay wiring │ │ ├── reportingEnforcement.ts │ │ ├── auditTrail.ts │ │ ├── permissionManager.ts │ │ ├── paymentRails.ts # ⚠️ MOCK — needs AkoPay API calls │ │ └── types.ts │ └── nxtToken.ts # ⚠️ MOCK — needs on-chain reads ├── mocks/ # ⚠️ ALL MOCK DATA — replace with Supabase ├── constants/ └── package.json ``` **Critical observation:** The entire `mocks/` directory, all `services/daoContract/*.ts` files, and `services/nxtToken.ts` currently contain **zero real API calls**. Every payment button fires `toast()`. Every smart contract call is simulated in memory. The database layer (Supabase) is not connected. This index defines exactly what to build to make every feature production-ready. --- ## 3. Current State Audit | Module | Screen/Feature | Status | Issue | |--------|---------------|--------|-------| | Auth | Login / Signup | ⚠️ Partial | No Supabase auth session persistence | | Governance | Proposal submission | ⚠️ Mock | Not written to database | | Governance | DAO voting | ⚠️ Mock | No on-chain tx or Supabase write | | Governance | Sub-DAO lifecycle | ❌ Missing | No instantiation logic | | Funding | Fund modal / payments | ❌ Broken | Buttons call `toast()` only | | Funding | Milestone tracking | ❌ Missing | No milestone table or UI | | Funding | Disbursement engine | ❌ Missing | AkoPay not integrated | | Token | NXT dashboard | ⚠️ Mock | No blockchain reads | | Token | Capital recycling | ❌ Missing | No contract interaction | | KYC | KYC notice shown | ❌ Broken | No actual verification flow | | Intelligence | Alert patterns | ⚠️ Mock | Hardcoded demo data | | Intelligence | AI analysis | ❌ Missing | No Anthropic API calls | | Intelligence | RVF early warning | ❌ Missing | No real data sources | | Research | Marketplace | ❌ Missing | Entire feature absent | | Field | Geo-tagged capture | ⚠️ Partial | No Supabase write, no PostGIS | | Enterprise | Gov dashboard | ❌ Missing | No enterprise auth or screens | | Credibility | Score calculation | ⚠️ Mock | Static number, no aggregation | | Notifications | Push alerts | ❌ Missing | No service worker or Expo push | | Payments | Mobile money | ❌ Broken | API endpoints defined but never called | | Payments | AkoPay rails | ❌ Missing | No AkoPay SDK integration | --- ## 4. Complete Gap Analysis — What's Missing ### 🔴 P1 — Critical (Blocks Core Value Proposition) #### 4.1 AkoPay Payment Rails (Real API Calls) The `paymentRails.ts` service defines correct data models and fee calculations but **never makes a single HTTP request**. Every `processPayment()` call returns a fake `transactionId`. This means no money has ever actually moved. **What needs to happen:** - Replace `console.log('[PaymentRails] Processing payment...')` with real AkoPay REST API calls - Wire up MTN MoMo, Airtel Money, and bank transfer buttons in the fund modal to actual payment initiation - Store real AkoPay transaction references in Supabase - Handle AkoPay webhooks for payment confirmation #### 4.2 KYC/AML Verification The signup screen shows a "KYC Notice" but clicks through to nothing. No user has ever been verified. Per the business plan, KYC is required before any funding or receiving payments. **What needs to happen:** - Implement AkoPay's Tier 0–3 KYC onboarding (Tier 0 = phone only, Tier 3 = full document) - Add Smile Identity as fallback for document verification - Store `kyc_tier` and `kyc_status` on the user profile - Gate funding actions behind minimum KYC tier checks #### 4.3 Milestone Tracking & Disbursement Engine The `escrowManager.ts` and `disbursementManager.ts` are fully mocked in-memory classes with zero Supabase persistence and zero AkoPay API calls. A funded proposal has no milestone structure. There is no evidence upload. No approval workflow exists. **What needs to happen:** - Create `milestones`, `milestone_evidence`, and `disbursement_requests` Supabase tables - Build milestone creation UI (templates: 3–5 milestones per project with evidence requirements) - Build evidence upload screen (Supabase Storage) - Build milestone approval voting UI for Sub-DAO members - Wire approved milestones to AkoPay disbursement API - Show real disbursement status (pending / processing / confirmed) in funder dashboard #### 4.4 Supabase Backend Connection **There is no Supabase client initialized anywhere in the codebase.** The app runs entirely on mock data. This is the foundational gap. Everything else in P1 depends on this being fixed first. **What needs to happen:** - Install `@supabase/supabase-js` - Create `lib/supabase.ts` with client initialization - Replace all `mocks/*.ts` imports with real Supabase query hooks - Implement Row Level Security (RLS) policies for all tables - Set up Supabase Auth (email/password + social via Google/LinkedIn) #### 4.5 NXT Token Dashboard (On-Chain Reads) The `economics.tsx` screen shows hardcoded numbers. The `nxtToken.ts` service does math on local variables with no blockchain reads. No user's actual NXT balance is ever fetched. **What needs to happen:** - Initialize `ethers.js` or `viem` with Polygon/Celo RPC - Deploy NXT ERC-20 contract (or connect to existing deployed address) - `balanceOf(userAddress)` call on screen load - `totalSupply()` for treasury dashboard - Store off-chain governance weight in Supabase `nxt_balances` table --- ### 🟡 P2 — High Priority (Core Differentiation Features) #### 4.6 AI Intelligence Layer The intelligence screens (`app/intelligence/`) show hardcoded pattern objects from `mocks/intelligence.ts`. No Anthropic API is called anywhere. The "real-time alerts" and "pattern detection" are static demo data. **What needs to happen:** - Call `https://api.anthropic.com/v1/messages` with Claude claude-sonnet-4-20250514 - Build Supabase Edge Function: `intelligence-analyzer` — runs on schedule, reads `field_observations` and `proposals`, generates pattern analysis - Integrate NewsAPI / GDELT for live signal aggregation (RVF, arbovirus, climate events) - Replace `mocks/intelligence.ts` with real Supabase `intelligence_patterns` table - Build PDF export for government reports (jsPDF or Puppeteer via Edge Function) #### 4.7 Enterprise/Government Dashboard The highest-revenue stream ($50K–$300K/yr) has no screens. No enterprise user type exists. No government-facing view is built. **What needs to happen:** - Add `user_role: 'researcher' | 'funder' | 'validator' | 'enterprise' | 'government'` to user profile - Build protected enterprise route with separate auth guard - Build government dashboard: active Sub-DAOs by region, capital deployed, milestone completion rates, intelligence alerts by severity - Build PDF/Excel export (jsPDF + SheetJS) - Implement Supabase RLS policies scoped to enterprise users #### 4.8 Sub-DAO Lifecycle Management Current DAOs are static Supabase records (or mock objects) with no state machine. The business plan specifies: instantiation → milestone-based disbursement → dissolution + capital return. **What needs to happen:** - Add `status` enum to `daos` table: `'proposed' | 'instantiated' | 'active' | 'reporting' | 'dissolved'` - Build Sub-DAO instantiation flow (triggered by approved proposal vote) - Build dissolution flow (triggered by final milestone approval) - Wire capital return to Parent DAO treasury on dissolution - Update credibility scores on dissolution #### 4.9 Research Marketplace Listed in business plan as a full module. Completely absent from codebase. The `app/research/[id].tsx` screen exists but renders mock academic data. **What needs to happen:** - Create `research_publications` and `datasets` Supabase tables - Integrate Pinata IPFS API for decentralized file storage of papers/datasets - Integrate CrossRef API for DOI metadata and citation data - Build publication upload flow (PDF + metadata) - Build 5–10% marketplace transaction fee via AkoPay - Build citation and download tracking #### 4.10 Credibility Scoring v2 The profile screen shows a static `91/100` score. The business plan describes multi-signal reputation: past funded work, DAO participation, reporting compliance, peer reviews. **What needs to happen:** - Build Supabase function `calculate_credibility_score(user_id)` that aggregates: - Votes cast and received - Proposals funded and completed - Milestone completion rate - Peer reviews written and received - Field observations submitted - Reporting compliance rate - Run recalculation trigger on relevant table updates - Display score breakdown by category on profile --- ### 🟢 P3 — Important (Full Platform Completeness) #### 4.11 Field Knowledge Capture (Geo-tagged) The `field-knowledge.tsx` and `on-the-ground.tsx` screens exist but write nothing to a database. Location permission is requested but coordinates are never stored. **What needs to happen:** - Create `field_observations` table with PostGIS `geography` column - Store lat/lng, photo URL (Supabase Storage), category, validation status - Build offline sync (service worker + IndexedDB for low-connectivity field environments) - Build validation workflow for validator community to review field submissions #### 4.12 Push Notifications & Alerts No notification infrastructure exists. Intelligence alerts, vote deadlines, and milestone completions are never pushed. **What needs to happen:** - Implement Expo Push Notifications (`expo-notifications`) - Build Supabase Edge Function: `send-notification` — triggered by Supabase Realtime events - Store push tokens in `user_push_tokens` table - Create notification types: intelligence_alert, vote_deadline, milestone_approved, disbursement_sent #### 4.13 Wallet Connection (Web3Modal) The smart contract services have correct ABI-level structure but no wallet connection UI. Users cannot sign transactions. **What needs to happen:** - Integrate Web3Modal or WalletConnect - Show wallet connect button on profile/economics screen - Store connected wallet address in Supabase user profile - Use connected address for NXT balance reads and governance vote signing --- ## 5. All Required APIs & Integrations ### 5.1 AkoPay (PRIMARY — Core Payment Infrastructure) **Purpose:** All fiat disbursement, cross-border payments, multi-currency wallets, KYC **Docs:** https://developer.akopay.com **Base URL:** `https://api.akopay.com/v1` **Key endpoints to integrate:** ``` POST /wallets/create — Create Sub-DAO escrow wallet GET /wallets/{id}/balance — Check escrow balance POST /payments/initiate — Trigger milestone disbursement GET /payments/{id}/status — Poll payment status POST /kyc/initiate — Start KYC verification GET /kyc/{user_id}/status — Check KYC tier POST /group-wallets/create — Sub-DAO multi-sig wallet POST /group-wallets/{id}/release — Release from multi-sig on milestone approval GET /fx/rates — Current exchange rates POST /webhooks/register — Register payment confirmation webhook ``` **Required env vars:** ``` EXPO_PUBLIC_AKOPAY_API_KEY= EXPO_PUBLIC_AKOPAY_ENVIRONMENT=sandbox|production AKOPAY_WEBHOOK_SECRET= ``` ### 5.2 Supabase (PRIMARY — Database & Auth) **Purpose:** PostgreSQL database, user auth, real-time subscriptions, file storage **Docs:** https://supabase.com/docs **Install:** `npx expo install @supabase/supabase-js` ``` EXPO_PUBLIC_SUPABASE_URL=https://your-project.supabase.co EXPO_PUBLIC_SUPABASE_ANON_KEY=eyJ... SUPABASE_SERVICE_ROLE_KEY=eyJ... (Edge Functions only — never expose client-side) ``` **Initialize at `lib/supabase.ts`:** ```typescript import { createClient } from '@supabase/supabase-js'; import AsyncStorage from '@react-native-async-storage/async-storage'; export const supabase = createClient( process.env.EXPO_PUBLIC_SUPABASE_URL!, process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY!, { auth: { storage: AsyncStorage, autoRefreshToken: true, persistSession: true, detectSessionInUrl: false, }, } ); ``` ### 5.3 Anthropic API (AI Intelligence Layer) **Purpose:** Pattern detection, risk modeling, research-funder matching, proposal review, report generation **Model:** `claude-sonnet-4-20250514` **Docs:** https://docs.anthropic.com ``` ANTHROPIC_API_KEY=sk-ant-... (Supabase Edge Functions only — never client-side) ``` **Primary use cases:** - `POST /v1/messages` — Analyze field_observations for outbreak patterns - `POST /v1/messages` — Score and summarize submitted proposals - `POST /v1/messages` — Generate funder-to-project match rationale - `POST /v1/messages` — Produce government intelligence reports from aggregated data ### 5.4 Smile Identity (KYC — Fallback/Supplement to AkoPay) **Purpose:** African-first ID verification — national IDs, passports, biometric selfies **Docs:** https://docs.smileidentity.com **Coverage:** 30+ African countries ``` SMILE_IDENTITY_PARTNER_ID= SMILE_IDENTITY_API_KEY= SMILE_IDENTITY_ENVIRONMENT=sandbox|production ``` **Key endpoints:** ``` POST /v1/smile-links — Generate hosted verification link (no-code KYC) GET /v1/jobs/{job_id} — Poll verification result POST /v1/id_verification — Server-side ID check ``` ### 5.5 Ethers.js / Viem (Blockchain Reads) **Purpose:** NXT token balance reads, on-chain governance state, audit trail **Install:** `npx expo install ethers` or `npx expo install viem` **Network:** Polygon (MATIC) — recommended for low gas, USDC support ``` EXPO_PUBLIC_RPC_URL=https://polygon-rpc.com EXPO_PUBLIC_NXT_CONTRACT_ADDRESS=0x... EXPO_PUBLIC_CHAIN_ID=137 ``` ### 5.6 WalletConnect / Web3Modal (Wallet Connection) **Purpose:** Allow users to connect MetaMask, Trust Wallet, Valora for signing governance transactions **Docs:** https://docs.walletconnect.com **Install:** `npx expo install @walletconnect/modal-react-native` ``` EXPO_PUBLIC_WALLETCONNECT_PROJECT_ID= ``` ### 5.7 Pinata IPFS (Decentralized Research Storage) **Purpose:** Research marketplace — store papers, datasets, field reports permanently **Docs:** https://docs.pinata.cloud **Install:** `npm install pinata` ``` PINATA_API_KEY= PINATA_SECRET_API_KEY= PINATA_JWT= EXPO_PUBLIC_PINATA_GATEWAY=https://gateway.pinata.cloud ``` ### 5.8 CrossRef API (Research Citations) **Purpose:** Look up DOI metadata, citation counts, journal information for research marketplace **Docs:** https://api.crossref.org **Free, no API key required for basic use** ``` GET https://api.crossref.org/works/{doi} GET https://api.crossref.org/works?query={title}&rows=5 ``` ### 5.9 NewsAPI / GDELT (Intelligence Signal Aggregation) **Purpose:** Real-time news signals for RVF early warning, disease outbreak detection **NewsAPI Docs:** https://newsapi.org/docs **GDELT Docs:** https://blog.gdeltproject.org/gdelt-2-0-our-global-world-in-realtime/ ``` NEWS_API_KEY= (Supabase Edge Functions only) ``` **Key GDELT endpoint (free):** ``` GET https://api.gdeltproject.org/api/v2/doc/doc?query=rift+valley+fever+africa&mode=artlist&maxrecords=25&format=json ``` ### 5.10 Expo Push Notifications **Purpose:** Intelligence alerts, vote deadlines, milestone approvals **Docs:** https://docs.expo.dev/push-notifications/overview/ **Install:** `npx expo install expo-notifications` **No additional API key needed — uses Expo's push service** --- ## 6. Missing Supabase Database Schema Add all of the following tables. Run as a single migration in Supabase SQL editor. ```sql -- ============================================================ -- NEXTERRA MISSING DATABASE TABLES -- Run this migration in Supabase SQL Editor -- ============================================================ -- Enable PostGIS for geo-tagged field observations CREATE EXTENSION IF NOT EXISTS postgis; -- ============================================================ -- KYC / IDENTITY -- ============================================================ CREATE TABLE IF NOT EXISTS kyc_verifications ( id UUID PRIMARY KEY DEFAULT gen_random_uuid(), user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE, tier INTEGER NOT NULL DEFAULT 0 CHECK (tier BETWEEN 0 AND 3), -- tier 0 = phone only, tier 1 = basic ID, tier 2 = enhanced, tier 3 = full institutional status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'in_review', 'approved', 'rejected', 'expired')), provider TEXT NOT NULL DEFAULT 'akopay' CHECK (provider IN ('akopay', 'smile_identity', 'manual')), provider_ref TEXT, -- AkoPay or Smile Identity job/reference ID document_type TEXT, -- passport, national_id, drivers_license document_country TEXT, verified_at TIMESTAMPTZ, expires_at TIMESTAMPTZ, rejection_reason TEXT, created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(), updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW() ); ALTER TABLE kyc_verifications ENABLE ROW LEVEL SECURITY; CREATE POLICY "Users can view own KYC" ON kyc_verifications FOR SELECT USING (auth.uid() = user_id); CREATE POLICY "Service role can manage KYC" ON kyc_verifications FOR ALL USING (auth.role() = 'service_role'); -- ============================================================ -- NXT TOKEN BALANCES (off-chain mirror of on-chain state) -- ============================================================ CREATE TABLE IF NOT EXISTS nxt_balances ( user_id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE, wallet_address TEXT, balance DECIMAL(18, 8) NOT NULL DEFAULT 0, locked_balance DECIMAL(18, 8) NOT NULL DEFAULT 0, -- locked in active votes governance_weight DECIMAL(18, 8) NOT NULL DEFAULT 0, tier TEXT NOT NULL DEFAULT 'basic' CHECK (tier IN ('basic', 'standard', 'premium', 'enterprise')), last_synced_at TIMESTAMPTZ DEFAULT NOW(), created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(), updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW() ); ALTER TABLE nxt_balances ENABLE ROW LEVEL SECURITY; CREATE POLICY "Users can view own NXT balance" ON nxt_balances FOR SELECT USING (auth.uid() = user_id); CREATE POLICY "Anyone can view public balances for governance" ON nxt_balances FOR SELECT USING (true); CREATE TABLE IF NOT EXISTS nxt_transactions ( id UUID PRIMARY KEY DEFAULT gen_random_uuid(), from_user_id UUID REFERENCES auth.users(id), to_user_id UUID REFERENCES auth.users(id), from_address TEXT, to_address TEXT, amount DECIMAL(18, 8) NOT NULL, type TEXT NOT NULL CHECK (type IN ('governance_lock', 'governance_unlock', 'incentive_reward', 'allocation', 'recycled', 'treasury_return')), tx_hash TEXT, -- on-chain transaction hash when applicable block_number BIGINT, proposal_id UUID, milestone_id UUID, notes TEXT, created_at TIMESTAMPTZ NOT NULL DEFAULT NOW() ); ALTER TABLE nxt_transactions ENABLE ROW LEVEL SECURITY; CREATE POLICY "Users can view own NXT transactions" ON nxt_transactions FOR SELECT USING ( auth.uid() = from_user_id OR auth.uid() = to_user_id ); -- ============================================================ -- MILESTONES & DISBURSEMENTS -- ============================================================ CREATE TABLE IF NOT EXISTS milestones ( id UUID PRIMARY KEY DEFAULT gen_random_uuid(), proposal_id UUID NOT NULL, -- references proposals table (already exists) dao_id UUID NOT NULL, title TEXT NOT NULL, description TEXT NOT NULL, milestone_number INTEGER NOT NULL, -- 1, 2, 3... amount_usd DECIMAL(12, 2) NOT NULL, amount_nxt DECIMAL(18, 8), status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'active', 'evidence_submitted', 'under_review', 'approved', 'disbursed', 'disputed', 'failed')), deadline TIMESTAMPTZ, evidence_requirement TEXT NOT NULL, -- what evidence is required for approval evidence_url TEXT, evidence_submitted_at TIMESTAMPTZ, approved_at TIMESTAMPTZ, disbursed_at TIMESTAMPTZ, disbursement_id UUID, -- references disbursements table created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(), updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW() ); ALTER TABLE milestones ENABLE ROW LEVEL SECURITY; CREATE POLICY "Public can view milestones" ON milestones FOR SELECT USING (true); CREATE POLICY "Proposal owners can update milestones" ON milestones FOR UPDATE USING ( auth.uid() IN (SELECT researcher_id FROM proposals WHERE id = proposal_id) ); CREATE TABLE IF NOT EXISTS milestone_votes ( id UUID PRIMARY KEY DEFAULT gen_random_uuid(), milestone_id UUID NOT NULL REFERENCES milestones(id) ON DELETE CASCADE, voter_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE, vote TEXT NOT NULL CHECK (vote IN ('approve', 'reject', 'abstain')), comment TEXT, nxt_weight DECIMAL(18, 8) DEFAULT 1.0, created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(), UNIQUE(milestone_id, voter_id) ); ALTER TABLE milestone_votes ENABLE ROW LEVEL SECURITY; CREATE POLICY "Authenticated users can vote on milestones" ON milestone_votes FOR INSERT WITH CHECK (auth.uid() = voter_id); CREATE POLICY "Public can view milestone votes" ON milestone_votes FOR SELECT USING (true); CREATE TABLE IF NOT EXISTS disbursements ( id UUID PRIMARY KEY DEFAULT gen_random_uuid(), milestone_id UUID NOT NULL REFERENCES milestones(id), proposal_id UUID NOT NULL, recipient_user_id UUID NOT NULL REFERENCES auth.users(id), amount_usd DECIMAL(12, 2) NOT NULL, amount_local DECIMAL(18, 4), local_currency TEXT, exchange_rate DECIMAL(12, 6), fx_fee_usd DECIMAL(10, 4), platform_fee_usd DECIMAL(10, 4), net_amount_received DECIMAL(12, 2), payment_method TEXT NOT NULL CHECK (payment_method IN ('mobile_money', 'bank_transfer', 'papss', 'link_token')), payment_provider TEXT, -- akopay, mpesa, mtn_momo, etc. akopay_ref TEXT, -- AkoPay transaction reference akopay_wallet_id TEXT, status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'processing', 'completed', 'failed', 'reversed')), initiated_at TIMESTAMPTZ DEFAULT NOW(), completed_at TIMESTAMPTZ, failure_reason TEXT, on_chain_tx_hash TEXT, created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(), updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW() ); ALTER TABLE disbursements ENABLE ROW LEVEL SECURITY; CREATE POLICY "Recipients can view own disbursements" ON disbursements FOR SELECT USING (auth.uid() = recipient_user_id); CREATE POLICY "Funders can view disbursements for their proposals" ON disbursements FOR SELECT USING (true); -- ============================================================ -- AkoPay WALLETS (escrow + group wallets) -- ============================================================ CREATE TABLE IF NOT EXISTS akopay_wallets ( id UUID PRIMARY KEY DEFAULT gen_random_uuid(), entity_type TEXT NOT NULL CHECK (entity_type IN ('user', 'sub_dao', 'parent_dao')), entity_id UUID NOT NULL, -- user_id or dao_id akopay_wallet_id TEXT NOT NULL UNIQUE, wallet_type TEXT NOT NULL CHECK (wallet_type IN ('personal', 'escrow', 'group_multisig', 'treasury')), currency TEXT NOT NULL DEFAULT 'USD', balance_usd DECIMAL(12, 2) DEFAULT 0, is_multisig BOOLEAN DEFAULT false, multisig_threshold INTEGER, -- N-of-M required signers status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'frozen', 'closed')), created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(), updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW() ); -- ============================================================ -- FIELD OBSERVATIONS (geo-tagged knowledge capture) -- ============================================================ CREATE TABLE IF NOT EXISTS field_observations ( id UUID PRIMARY KEY DEFAULT gen_random_uuid(), user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE, content TEXT NOT NULL, category TEXT NOT NULL CHECK (category IN ('disease_signal', 'climate_event', 'livestock_health', 'wildlife_observation', 'water_quality', 'vegetation', 'human_health', 'other')), location GEOGRAPHY(POINT, 4326), -- PostGIS point (lng, lat) country TEXT, region TEXT, photo_url TEXT, photo_urls TEXT[], validation_status TEXT NOT NULL DEFAULT 'pending' CHECK (validation_status IN ('pending', 'validated', 'rejected', 'flagged')), validated_by UUID REFERENCES auth.users(id), validated_at TIMESTAMPTZ, nxt_reward DECIMAL(8, 4) DEFAULT 0, -- NXT incentive for validated observations intelligence_linked BOOLEAN DEFAULT false, created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(), updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW() ); ALTER TABLE field_observations ENABLE ROW LEVEL SECURITY; CREATE POLICY "Users can manage own observations" ON field_observations FOR ALL USING (auth.uid() = user_id); CREATE POLICY "Validators can view all observations" ON field_observations FOR SELECT USING (true); -- Spatial index for geo queries CREATE INDEX idx_field_observations_location ON field_observations USING GIST (location); -- ============================================================ -- RESEARCH MARKETPLACE -- ============================================================ CREATE TABLE IF NOT EXISTS research_publications ( id UUID PRIMARY KEY DEFAULT gen_random_uuid(), author_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE, title TEXT NOT NULL, abstract TEXT, doi TEXT UNIQUE, journal TEXT, published_year INTEGER, keywords TEXT[], ipfs_cid TEXT, -- Pinata IPFS content identifier file_url TEXT, file_size_bytes BIGINT, access_type TEXT NOT NULL DEFAULT 'open' CHECK (access_type IN ('open', 'paid', 'request_only')), price_usd DECIMAL(8, 2), citation_count INTEGER DEFAULT 0, download_count INTEGER DEFAULT 0, status TEXT NOT NULL DEFAULT 'draft' CHECK (status IN ('draft', 'under_review', 'published', 'retracted')), peer_reviewed BOOLEAN DEFAULT false, one_health_domains TEXT[], -- relevant One Health categories created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(), updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW() ); ALTER TABLE research_publications ENABLE ROW LEVEL SECURITY; CREATE POLICY "Public can view published research" ON research_publications FOR SELECT USING (status = 'published'); CREATE POLICY "Authors can manage own research" ON research_publications FOR ALL USING (auth.uid() = author_id); CREATE TABLE IF NOT EXISTS research_datasets ( id UUID PRIMARY KEY DEFAULT gen_random_uuid(), author_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE, publication_id UUID REFERENCES research_publications(id), title TEXT NOT NULL, description TEXT, ipfs_cid TEXT, file_url TEXT, file_format TEXT, -- csv, json, shp, geotiff, etc. file_size_bytes BIGINT, license TEXT, geographic_coverage TEXT[], temporal_coverage_start DATE, temporal_coverage_end DATE, download_count INTEGER DEFAULT 0, price_usd DECIMAL(8, 2) DEFAULT 0, created_at TIMESTAMPTZ NOT NULL DEFAULT NOW() ); CREATE TABLE IF NOT EXISTS research_purchases ( id UUID PRIMARY KEY DEFAULT gen_random_uuid(), buyer_id UUID NOT NULL REFERENCES auth.users(id), item_type TEXT NOT NULL CHECK (item_type IN ('publication', 'dataset')), item_id UUID NOT NULL, amount_usd DECIMAL(8, 2) NOT NULL, platform_fee_usd DECIMAL(8, 2), akopay_ref TEXT, status TEXT NOT NULL DEFAULT 'pending', created_at TIMESTAMPTZ NOT NULL DEFAULT NOW() ); -- ============================================================ -- INTELLIGENCE (replace mocks with real data) -- ============================================================ CREATE TABLE IF NOT EXISTS intelligence_patterns ( id UUID PRIMARY KEY DEFAULT gen_random_uuid(), pattern_type TEXT NOT NULL CHECK (pattern_type IN ('outbreak_signal', 'climate_risk', 'funding_gap', 'research_overlap', 'rvf_early_warning', 'arbovirus_alert')), title TEXT NOT NULL, summary TEXT NOT NULL, severity TEXT NOT NULL CHECK (severity IN ('low', 'medium', 'high', 'critical')), confidence_score DECIMAL(4, 3) CHECK (confidence_score BETWEEN 0 AND 1), region TEXT, countries TEXT[], source_observations UUID[], -- field_observation IDs that contributed source_news_urls TEXT[], ai_analysis TEXT, -- Claude's structured analysis ai_model_used TEXT, is_public BOOLEAN DEFAULT true, is_enterprise_only BOOLEAN DEFAULT false, auto_generated BOOLEAN DEFAULT false, generated_by UUID REFERENCES auth.users(id), created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(), updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW() ); ALTER TABLE intelligence_patterns ENABLE ROW LEVEL SECURITY; CREATE POLICY "Public can view non-enterprise patterns" ON intelligence_patterns FOR SELECT USING (is_enterprise_only = false); CREATE TABLE IF NOT EXISTS intelligence_alerts ( id UUID PRIMARY KEY DEFAULT gen_random_uuid(), pattern_id UUID REFERENCES intelligence_patterns(id), title TEXT NOT NULL, body TEXT NOT NULL, severity TEXT NOT NULL CHECK (severity IN ('low', 'medium', 'high', 'critical')), region TEXT, target_roles TEXT[], -- ['researcher', 'funder', 'enterprise'] sent_at TIMESTAMPTZ, created_at TIMESTAMPTZ NOT NULL DEFAULT NOW() ); -- ============================================================ -- ENTERPRISE/GOVERNMENT USERS -- ============================================================ CREATE TABLE IF NOT EXISTS enterprise_accounts ( id UUID PRIMARY KEY DEFAULT gen_random_uuid(), user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE, org_name TEXT NOT NULL, org_type TEXT NOT NULL CHECK (org_type IN ('government', 'dfi', 'foundation', 'insurance', 'agribusiness', 'ngo', 'university')), country TEXT, dashboard_tier TEXT NOT NULL DEFAULT 'basic' CHECK (dashboard_tier IN ('basic', 'standard', 'premium', 'white_label')), contract_value_usd DECIMAL(12, 2), contract_start TIMESTAMPTZ, contract_end TIMESTAMPTZ, allowed_regions TEXT[], -- regions they can view data for allowed_countries TEXT[], akopay_ref TEXT, status TEXT NOT NULL DEFAULT 'active', created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(), updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW() ); ALTER TABLE enterprise_accounts ENABLE ROW LEVEL SECURITY; CREATE POLICY "Users can view own enterprise account" ON enterprise_accounts FOR SELECT USING (auth.uid() = user_id); -- ============================================================ -- CREDIBILITY SCORING v2 -- ============================================================ CREATE TABLE IF NOT EXISTS credibility_scores ( user_id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE, overall_score INTEGER NOT NULL DEFAULT 0 CHECK (overall_score BETWEEN 0 AND 100), -- Component scores (each 0–100) funded_work_score INTEGER DEFAULT 0, dao_participation_score INTEGER DEFAULT 0, reporting_compliance_score INTEGER DEFAULT 0, peer_review_score INTEGER DEFAULT 0, field_contribution_score INTEGER DEFAULT 0, milestone_completion_score INTEGER DEFAULT 0, -- Raw counts proposals_submitted INTEGER DEFAULT 0, proposals_funded INTEGER DEFAULT 0, milestones_completed INTEGER DEFAULT 0, milestones_failed INTEGER DEFAULT 0, votes_cast INTEGER DEFAULT 0, peer_reviews_written INTEGER DEFAULT 0, field_observations_validated INTEGER DEFAULT 0, last_calculated_at TIMESTAMPTZ DEFAULT NOW(), updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW() ); ALTER TABLE credibility_scores ENABLE ROW LEVEL SECURITY; CREATE POLICY "Anyone can view credibility scores" ON credibility_scores FOR SELECT USING (true); -- ============================================================ -- PUSH NOTIFICATION TOKENS -- ============================================================ CREATE TABLE IF NOT EXISTS user_push_tokens ( id UUID PRIMARY KEY DEFAULT gen_random_uuid(), user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE, expo_push_token TEXT NOT NULL, device_type TEXT CHECK (device_type IN ('ios', 'android', 'web')), created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(), UNIQUE(user_id, expo_push_token) ); -- ============================================================ -- SUB-DAO LIFECYCLE -- ============================================================ CREATE TABLE IF NOT EXISTS sub_dao_lifecycle ( id UUID PRIMARY KEY DEFAULT gen_random_uuid(), dao_id UUID NOT NULL, proposal_id UUID NOT NULL, status TEXT NOT NULL DEFAULT 'proposed' CHECK (status IN ('proposed', 'instantiated', 'active', 'reporting', 'dissolved', 'emergency_paused')), capital_allocated_usd DECIMAL(12, 2) DEFAULT 0, capital_deployed_usd DECIMAL(12, 2) DEFAULT 0, capital_returned_usd DECIMAL(12, 2) DEFAULT 0, milestones_total INTEGER DEFAULT 0, milestones_completed INTEGER DEFAULT 0, on_chain_address TEXT, instantiated_at TIMESTAMPTZ, dissolved_at TIMESTAMPTZ, dissolution_reason TEXT, created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(), updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW() ); ``` --- ## 7. Feature Implementation Checklist Use this checklist to track build progress. Check off items as they are merged to `main`. ### Phase 1 — Foundation (Do First, Everything Depends on This) - [ ] **Install Supabase client** — `npx expo install @supabase/supabase-js` - [ ] **Create `lib/supabase.ts`** — client initialization with AsyncStorage session persistence - [ ] **Replace `mocks/` data** — switch all 8 mock files to real Supabase queries using `@tanstack/react-query` - [ ] **Auth flow** — connect signup/login to `supabase.auth.signUp()` and `supabase.auth.signInWithPassword()` - [ ] **Run database migration** — execute the full SQL from Section 6 in Supabase SQL editor - [ ] **Set up Row Level Security** — confirm all RLS policies are active before connecting frontend ### Phase 2 — Payments & KYC (Core Value Proposition) - [ ] **AkoPay account** — sign up at developer.akopay.com, get sandbox API key - [ ] **Create `services/akopay.ts`** — HTTP client wrapping AkoPay REST API (wallet create, payment initiate, status poll) - [ ] **Replace `paymentRails.ts` mock** — `processPayment()` must call `POST https://api.akopay.com/v1/payments/initiate` - [ ] **Wire fund modal buttons** — MTN MoMo, Airtel, Bank Transfer buttons call `akopay.initiatePayment()` not `toast()` - [ ] **AkoPay webhook endpoint** — Supabase Edge Function `akopay-webhook` receives payment confirmations and updates `disbursements` table - [ ] **KYC flow** — implement AkoPay Tier 0 (phone) on signup, Tier 2+ prompt before proposal submission - [ ] **Smile Identity fallback** — integrate for users needing document verification in AkoPay-lite markets - [ ] **KYC gate** — `profile.tsx` shows KYC status badge; funding actions check `kyc_verifications.tier >= 1` before proceeding ### Phase 3 — Milestone Engine - [ ] **`milestones` table populated** — proposal submission writes milestones to Supabase with evidence requirements - [ ] **Milestone list view** — add milestone tab/section under each funded proposal detail screen - [ ] **Evidence upload** — `expo-document-picker` + `expo-image-picker` → Supabase Storage `milestone-evidence` bucket - [ ] **Milestone vote UI** — approve/reject/comment voting for Sub-DAO members with NXT weight display - [ ] **Vote aggregation** — Supabase function or Edge Function counts votes and transitions milestone to `approved` - [ ] **AkoPay disbursement trigger** — on milestone `approved`, call `POST /payments/initiate` via Edge Function - [ ] **Disbursement status display** — funder dashboard shows pending / processing / confirmed per milestone ### Phase 4 — NXT Token & Blockchain - [ ] **Install `ethers`** — `npx expo install ethers` - [ ] **Deploy NXT ERC-20 contract** — or provide deployed Polygon address - [ ] **Create `lib/blockchain.ts`** — RPC provider, contract instance, read functions - [ ] **`economics.tsx` live data** — `balanceOf(address)`, `totalSupply()`, treasury pool allocation from on-chain - [ ] **`nxt_balances` sync** — Edge Function that mirrors on-chain NXT holdings to Supabase every hour - [ ] **WalletConnect integration** — wallet connect button on profile screen; save address to user profile - [ ] **Governance vote signing** — DAO votes optionally sign on-chain via connected wallet ### Phase 5 — AI Intelligence Layer - [ ] **Supabase Edge Function `intelligence-analyzer`** — runs on cron, reads recent `field_observations`, calls Anthropic API, writes to `intelligence_patterns` - [ ] **NewsAPI integration** — Edge Function fetches RVF/arbovirus/climate news, appends to analysis context - [ ] **Replace `mocks/intelligence.ts`** — `app/intelligence/index.tsx` queries `intelligence_patterns` table - [ ] **Alert generation** — patterns above `severity = 'high'` auto-create `intelligence_alerts` and trigger push notifications - [ ] **Proposal AI review** — on proposal submission, call Anthropic to score quality and relevance, display score to submitter - [ ] **Funder-project matching AI** — `match.tsx` calls Anthropic with funder profile + available proposals, returns ranked matches with rationale - [ ] **Government report export** — Edge Function uses Anthropic to structure data → jsPDF to generate downloadable PDF ### Phase 6 — Enterprise Dashboard - [ ] **Enterprise auth guard** — protected route that checks `enterprise_accounts` for active record - [ ] **Government dashboard screen** — capital deployed by region, milestone completion rates, active Sub-DAOs, top researchers - [ ] **Intelligence product view** — enterprise users see `is_enterprise_only = true` patterns - [ ] **PDF/Excel export** — jsPDF + SheetJS export buttons on dashboard - [ ] **RLS for enterprise data** — `enterprise_accounts.allowed_countries` array gates data access ### Phase 7 — Research Marketplace - [ ] **Install Pinata SDK** — `npm install pinata` - [ ] **Publication upload flow** — PDF + metadata form → Pinata pin → store IPFS CID + metadata in `research_publications` - [ ] **CrossRef DOI lookup** — on DOI input, auto-populate title, abstract, authors, journal from CrossRef API - [ ] **Marketplace browse screen** — query `research_publications WHERE status = 'published'` with filter by domain, keyword - [ ] **Purchase flow** — paid publications initiate AkoPay payment; on confirmation, generate time-limited Pinata signed URL - [ ] **Citation tracking** — increment `citation_count` when a publication links to another via DOI ### Phase 8 — Field Knowledge & Notifications - [ ] **Geo observation write** — `field-knowledge.tsx` saves to `field_observations` with PostGIS coordinates - [ ] **Photo upload** — `expo-image-picker` → Supabase Storage `field-photos` bucket → store URL - [ ] **Offline sync** — `@react-native-async-storage/async-storage` queue for offline submissions, sync on reconnect - [ ] **Validator workflow** — validator role can see pending observations, approve/reject - [ ] **NXT reward on validation** — Supabase trigger awards `nxt_reward` NXT to observer on validation - [ ] **Expo push tokens** — register device push token on login, store in `user_push_tokens` - [ ] **Push Edge Function** — `send-push-notification` Edge Function called by database triggers for key events ### Phase 9 — Credibility v2 & Sub-DAO Lifecycle - [ ] **`calculate_credibility_score(user_id)` Supabase function** — aggregates all signal tables - [ ] **Trigger on relevant tables** — auto-recalculate score when milestones, votes, or field observations change - [ ] **Profile score breakdown** — show component scores (funding track record, DAO participation, compliance) on profile screen - [ ] **Sub-DAO state machine** — programmatic instantiation on proposal approval, auto-dissolution on final milestone - [ ] **Capital return on dissolution** — unused escrow returned to Parent DAO treasury on dissolution --- ## 8. Priority Build Order ``` Week 1–2: Supabase connection + auth + database migration Week 3–4: AkoPay account + payment service + KYC flow Week 5–6: Milestone tables + evidence upload + approval voting Week 7: AkoPay disbursement trigger on milestone approval Week 8: NXT token reads (ethers.js) + economics screen live data Week 9–10: Anthropic intelligence Edge Function + replace mock intelligence Week 11–12: Enterprise dashboard + PDF export Week 13–14: Research marketplace (Pinata + CrossRef) Week 15: Field observation write + geo storage Week 16: Push notifications Week 17: Credibility v2 + Sub-DAO lifecycle state machine Week 18: QA pass + smart contract audit prep ``` --- ## 9. Environment Variables Master List Create `.env.local` at project root. **Never commit this file.** Add all of the following: ```bash # ─── SUPABASE ───────────────────────────────────────────── EXPO_PUBLIC_SUPABASE_URL=https://your-project.supabase.co EXPO_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9... SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9... # Edge Functions only # ─── AKOPAY ─────────────────────────────────────────────── EXPO_PUBLIC_AKOPAY_BASE_URL=https://api.akopay.com/v1 EXPO_PUBLIC_AKOPAY_API_KEY=ak_live_... EXPO_PUBLIC_AKOPAY_ENVIRONMENT=sandbox # change to production at launch AKOPAY_WEBHOOK_SECRET=whsec_... # Supabase Edge Functions only # ─── ANTHROPIC (Supabase Edge Functions ONLY — never client-side) ─ ANTHROPIC_API_KEY=sk-ant-api03-... # ─── BLOCKCHAIN ─────────────────────────────────────────── EXPO_PUBLIC_RPC_URL=https://polygon-rpc.com EXPO_PUBLIC_CHAIN_ID=137 EXPO_PUBLIC_NXT_CONTRACT_ADDRESS=0x0000000000000000000000000000000000000000 # fill after deploy EXPO_PUBLIC_WALLETCONNECT_PROJECT_ID= # ─── KYC ────────────────────────────────────────────────── SMILE_IDENTITY_PARTNER_ID= # Supabase Edge Functions only SMILE_IDENTITY_API_KEY= # Supabase Edge Functions only SMILE_IDENTITY_ENVIRONMENT=sandbox # ─── STORAGE / IPFS ─────────────────────────────────────── PINATA_JWT= # Supabase Edge Functions only EXPO_PUBLIC_PINATA_GATEWAY=https://gateway.pinata.cloud # ─── INTELLIGENCE ───────────────────────────────────────── NEWS_API_KEY= # Supabase Edge Functions only # ─── NOTIFICATIONS ──────────────────────────────────────── # No key needed — uses Expo Push infrastructure automatically ``` **For Supabase Edge Functions**, set secrets via CLI: ```bash supabase secrets set ANTHROPIC_API_KEY=sk-ant-... supabase secrets set AKOPAY_WEBHOOK_SECRET=whsec_... supabase secrets set SMILE_IDENTITY_API_KEY=... supabase secrets set NEWS_API_KEY=... supabase secrets set PINATA_JWT=... ``` --- ## 10. Smart Contract Integration Guide The 8 contracts in `services/daoContract/` are correctly modeled but make zero on-chain calls. ### 10.1 Recommended Network: Polygon (MATIC) - Low gas fees (~$0.001 per transaction) - EVM-compatible (Solidity contracts) - USDC native support - Active African developer community ### 10.2 Install dependencies ```bash npx expo install ethers # or npx expo install viem @wagmi/core ``` ### 10.3 Replace mock contract calls Current pattern (broken): ```typescript // services/daoContract/votingEngine.ts castVote(proposalId: string, vote: 'for' | 'against') { console.log('[VotingEngine] Vote cast'); // ← MOCK return { success: true }; } ``` Required pattern (production): ```typescript // lib/blockchain.ts import { ethers } from 'ethers'; const provider = new ethers.JsonRpcProvider(process.env.EXPO_PUBLIC_RPC_URL); export const getVotingEngineContract = (signer?: ethers.Signer) => { return new ethers.Contract( VOTING_ENGINE_ADDRESS, VOTING_ENGINE_ABI, signer || provider ); }; // In votingEngine.ts export async function castVoteOnChain( proposalId: string, vote: boolean, signer: ethers.Signer ) { const contract = getVotingEngineContract(signer); const tx = await contract.castVote(proposalId, vote); const receipt = await tx.wait(); // Write tx hash to Supabase for audit trail await supabase.from('nxt_transactions').insert({ type: 'governance_lock', tx_hash: receipt.hash, proposal_id: proposalId, }); return receipt; } ``` ### 10.4 Contract audit requirement Per the business plan Q3 2026 pre-launch checklist, all 8 smart contracts must pass a 3rd-party security audit before public launch. Recommended auditors for African-context projects: - **Code4rena** — competitive audit, cost-effective - **Halborn** — strong track record with DeFi/DeSci protocols - **Consensys Diligence** — gold standard, higher cost --- ## 11. AkoPay Integration Specification ### 11.1 Create `services/akopay.ts` ```typescript const AKOPAY_BASE = process.env.EXPO_PUBLIC_AKOPAY_BASE_URL!; const AKOPAY_KEY = process.env.EXPO_PUBLIC_AKOPAY_API_KEY!; const headers = { 'Content-Type': 'application/json', 'Authorization': `Bearer ${AKOPAY_KEY}`, 'X-Environment': process.env.EXPO_PUBLIC_AKOPAY_ENVIRONMENT || 'sandbox', }; export const akopay = { // Create an escrow wallet for a Sub-DAO async createEscrowWallet(daoId: string, currency = 'USD') { const res = await fetch(`${AKOPAY_BASE}/wallets/create`, { method: 'POST', headers, body: JSON.stringify({ entity_type: 'sub_dao', entity_id: daoId, wallet_type: 'escrow', currency }), }); return res.json(); }, // Initiate a milestone disbursement payment async initiateDisbursement(params: { from_wallet_id: string; recipient_phone?: string; recipient_bank_account?: string; amount_usd: number; destination_currency: string; destination_country: string; payment_method: 'mobile_money' | 'bank_transfer' | 'papss'; reference: string; // milestone_id }) { const res = await fetch(`${AKOPAY_BASE}/payments/initiate`, { method: 'POST', headers, body: JSON.stringify(params), }); return res.json(); // returns { akopay_ref, status, estimated_arrival } }, // Check payment status async getPaymentStatus(akoPayRef: string) { const res = await fetch(`${AKOPAY_BASE}/payments/${akoPayRef}/status`, { headers }); return res.json(); }, // Initiate KYC for a user (Tier 2+ — generates a verification link) async initiateKYC(params: { user_id: string; phone_number: string; tier_requested: 1 | 2 | 3; redirect_url: string; }) { const res = await fetch(`${AKOPAY_BASE}/kyc/initiate`, { method: 'POST', headers, body: JSON.stringify(params), }); return res.json(); // returns { verification_url, job_id } }, // Get current FX rates async getFXRates(fromCurrency: string, toCurrencies: string[]) { const params = new URLSearchParams({ from: fromCurrency, to: toCurrencies.join(',') }); const res = await fetch(`${AKOPAY_BASE}/fx/rates?${params}`, { headers }); return res.json(); }, }; ``` ### 11.2 Supabase Edge Function — AkoPay Webhook Create `supabase/functions/akopay-webhook/index.ts`: ```typescript import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'; import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'; serve(async (req) => { const supabase = createClient( Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')! ); const payload = await req.json(); // Verify webhook signature const signature = req.headers.get('x-akopay-signature'); // TODO: verify HMAC against AKOPAY_WEBHOOK_SECRET if (payload.event === 'payment.completed') { await supabase .from('disbursements') .update({ status: 'completed', completed_at: new Date().toISOString() }) .eq('akopay_ref', payload.data.reference); // Update milestone status to 'disbursed' await supabase .from('milestones') .update({ status: 'disbursed', disbursed_at: new Date().toISOString() }) .eq('id', payload.data.metadata?.milestone_id); } if (payload.event === 'kyc.approved') { await supabase .from('kyc_verifications') .update({ status: 'approved', tier: payload.data.tier_approved, verified_at: new Date().toISOString() }) .eq('provider_ref', payload.data.job_id); } return new Response(JSON.stringify({ received: true }), { status: 200 }); }); ``` --- ## 12. AI Intelligence Layer Specification ### 12.1 Supabase Edge Function — `intelligence-analyzer` Create `supabase/functions/intelligence-analyzer/index.ts`. Schedule via `pg_cron` to run every 6 hours. ```typescript import Anthropic from 'https://esm.sh/@anthropic-ai/sdk'; const anthropic = new Anthropic({ apiKey: Deno.env.get('ANTHROPIC_API_KEY') }); // Fetch recent field observations and news signals // Build context string // Call Claude claude-sonnet-4-20250514 for pattern analysis // Write results to intelligence_patterns table const systemPrompt = `You are NexTerra's intelligence analysis engine — an expert in One Health surveillance, disease ecology, and climate-health interactions across Africa. You analyze field observations, research proposals, and news signals to identify: 1. Emerging disease outbreak patterns (especially RVF, arbovirus, zoonotic spillover) 2. Climate-health risk signals 3. Research funding gaps 4. Cross-sector collaboration opportunities Always return structured JSON with: pattern_type, title, summary, severity (low/medium/high/critical), confidence_score (0-1), region, countries[], key_indicators[], recommended_actions[].`; ``` ### 12.2 API Keys Required - `ANTHROPIC_API_KEY` — set in Supabase secrets, never expose client-side - `NEWS_API_KEY` — for fetching live news context --- ## 13. KYC/AML Flow Specification ### 13.1 Tier Structure (per AkoPay + business plan) | Tier | Requirement | Unlocks | |------|------------|---------| | 0 | Phone number only | View proposals, community feed | | 1 | Phone + email verified | Submit proposals, vote | | 2 | ID document (national ID / passport) | Receive disbursements up to $5,000 | | 3 | Full institutional KYC | Unlimited disbursements, enterprise features | ### 13.2 KYC Gate Implementation Add to any screen that requires KYC: ```typescript import { useKYCGate } from '@/hooks/useKYCGate'; const { kycTier, requiresKYC, promptKYCUpgrade } = useKYCGate(); // Before allowing proposal submission: if (kycTier < 1) { promptKYCUpgrade(1, 'You need to verify your identity before submitting a proposal.'); return; } ``` --- ## 14. Milestone & Disbursement Engine Specification ### 14.1 Milestone lifecycle state machine ``` pending → active → evidence_submitted → under_review → approved → disbursed ↘ disputed → failed ``` ### 14.2 Disbursement trigger (Edge Function) On `milestones.status` update to `approved`: 1. Fetch Sub-DAO AkoPay escrow wallet 2. Fetch recipient payment details (mobile money / bank) 3. Call `akopay.initiateDisbursement()` 4. Write `akopay_ref` to `disbursements` table 5. Update `milestones.disbursement_id` 6. Send push notification to recipient and funder ### 14.3 Funder dashboard view The funded proposal detail screen must show a milestone progress visualization: ``` Milestone 1 ✅ Disbursed $15,000 → Recipient in 2h 14m Milestone 2 🔄 Evidence submitted — under review Milestone 3 ⏳ Pending Milestone 4 ⏳ Pending ``` --- ## 15. NXT Token Dashboard Specification ### 15.1 `economics.tsx` — live data points to display | Data Point | Source | How to Fetch | |-----------|--------|-------------| | My NXT balance | `nxt_balances` + on-chain | `contract.balanceOf(address)` | | Total supply | On-chain | `contract.totalSupply()` | | DAO Treasury pool | `nxt_balances WHERE entity = 'treasury'` | Supabase query | | My governance weight | `nxt_balances.governance_weight` | Supabase query | | My tier | `nxt_balances.tier` | Supabase query | | NXT transactions | `nxt_transactions WHERE user_id = me` | Supabase query | | Active governance locks | `nxt_balances.locked_balance` | Supabase query | | Recycled this month | `nxt_transactions WHERE type = 'recycled'` | Supabase aggregate | ### 15.2 Token allocation visualization Show a donut chart of the 100M NXT allocation per the business plan: - DAO Treasury Pool: 45M (45%) - Public / Institutional Access: 20M (20%) - Ecosystem Incentives: 15M (15%) - Core Contributors: 10M (10%) - Strategic Partners: 5M (5%) - Liquidity & Stability: 5M (5%) --- ## 16. Enterprise/Government Dashboard Specification ### 16.1 Route: `/enterprise/dashboard` Protected by `enterprise_accounts` record check. Redirect to upgrade page if not subscribed. ### 16.2 Dashboard widgets | Widget | Data Source | |--------|------------| | Capital deployed map | `disbursements` JOIN `milestones` with coordinates | | Active Sub-DAOs by country | `sub_dao_lifecycle WHERE status = 'active'` | | Milestone completion rate | `milestones` aggregate | | Intelligence alerts feed | `intelligence_patterns WHERE is_enterprise_only = true` | | Top researchers by credibility | `credibility_scores` JOIN `profiles` | | Field observation heatmap | `field_observations` PostGIS clustering | | Monthly capital flow chart | `disbursements` time series | | Export buttons | PDF (jsPDF) + Excel (SheetJS) | --- ## 17. Testing Strategy ### Unit Tests - `services/akopay.ts` — mock fetch, test all payment scenarios - `services/daoContract/` — test contract call argument formatting - Supabase Edge Functions — use `supabase test functions` ### Integration Tests - Payment flow: initiate → webhook → milestone update → push notification - KYC flow: initiate → verification URL → webhook → tier update - Milestone flow: evidence submit → votes → approval → disbursement ### End-to-End Tests (Playwright on web build) - Full proposal submission → DAO vote → milestone creation - Payment initiation → AkoPay sandbox → confirmation - Intelligence alert generation → push delivery --- ## 18. Deployment Checklist ### Pre-launch (by October 31, 2026) - [ ] All `.env` secrets set in Vercel dashboard and Supabase secrets - [ ] AkoPay account switched from `sandbox` to `production` - [ ] Smart contract 3rd-party audit complete (Code4rena or Halborn) - [ ] NXT genesis mint executed on Polygon mainnet - [ ] Supabase production project created (separate from dev) - [ ] Supabase RLS policies audited by external reviewer - [ ] Database migration run and verified on production - [ ] AkoPay webhook URL registered in AkoPay dashboard - [ ] Expo app submitted to App Store and Google Play - [ ] Monitoring set up: Sentry (errors) + Supabase dashboard (DB) - [ ] Smart contract addresses updated in env vars - [ ] GDPR / POPIA compliance review completed - [ ] Load test: Supabase + Edge Functions under 500 concurrent users --- ## 19. Contributing Guidelines ### Branch naming ``` feature/akopay-payment-rails feature/milestone-engine fix/voting-supabase-write chore/replace-mocks-with-supabase ``` ### Commit format ``` feat(payments): wire AkoPay milestone disbursement API fix(kyc): correct Smile Identity webhook signature validation chore(db): add credibility_scores trigger function ``` ### Pull request requirements 1. All mock data in `mocks/` replaced by real Supabase queries before merge 2. No `console.log('[ServiceName]...')` in service files — these are mock indicators 3. New Supabase tables must include RLS policies 4. New API calls must use env vars — no hardcoded URLs or keys 5. Edge Functions must handle errors and return appropriate HTTP status codes ### Priority labels - `p1-critical` — payment infrastructure, KYC, milestone engine - `p2-core` — AI intelligence, enterprise dashboard, token dashboard - `p3-complete` — research marketplace, push notifications, credibility v2 --- *Built by Dr. Nichar Gregory, PhD · NexTerra DAO · Johannesburg, South Africa* *"Africa's scientific sovereignty is not a development goal. It is a right. NexTerra is the infrastructure to claim it."*
+# NexTerra Platform — Master Development Index
+
+### Decentralized Science Funding, Governance & Intelligence Infrastructure for Africa
+
+> **Maintainer:** Dr. Nichar Gregory, PhD — CEO & Founder
+> **Live App:** https://nexterra-app.vercel.app
+> **Stack:** Expo / React Native + TypeScript · Hono.js + tRPC · Supabase (PostgreSQL) · Vercel
+> **Target Launch:** October 31, 2026
+
+---
+
+## Table of Contents
+
+1. [Project Overview](#1-project-overview)
+2. [Repository Structure](#2-repository-structure)
+3. [Current State Audit](#3-current-state-audit)
+4. [Complete Gap Analysis — What's Missing](#4-complete-gap-analysis--whats-missing)
+5. [All Required APIs & Integrations](#5-all-required-apis--integrations)
+6. [Missing Supabase Database Schema](#6-missing-supabase-database-schema)
+7. [Feature Implementation Checklist](#7-feature-implementation-checklist)
+8. [Priority Build Order](#8-priority-build-order)
+9. [Environment Variables Master List](#9-environment-variables-master-list)
+10. [Smart Contract Integration Guide](#10-smart-contract-integration-guide)
+11. [AkoPay Integration Specification](#11-akopay-integration-specification)
+12. [AI Intelligence Layer Specification](#12-ai-intelligence-layer-specification)
+13. [KYC/AML Flow Specification](#13-kycaml-flow-specification)
+14. [Milestone & Disbursement Engine Specification](#14-milestone--disbursement-engine-specification)
+15. [NXT Token Dashboard Specification](#15-nxt-token-dashboard-specification)
+16. [Enterprise/Government Dashboard Specification](#16-enterprisegovernment-dashboard-specification)
+17. [Testing Strategy](#17-testing-strategy)
+18. [Deployment Checklist](#18-deployment-checklist)
+19. [Contributing Guidelines](#19-contributing-guidelines)
+
+---
+
+## 1. Project Overview
+
+NexTerra is the first DAO-native decentralized science funding, governance, and intelligence platform purpose-built for Africa — beginning with One Health research and expanding across the Global South.
+
+**Core Value Proposition:** Convert fragmented, opaque science funding into a real-time, community-governed, AI-powered capital deployment engine — eliminating intermediaries, enforcing accountability through code, and transforming funded field work into trusted intelligence used by governments, DFIs, insurers, and the private sector.
+
+**What the platform does (business plan spec):**
+
+- DAO governance hierarchy (Parent DAO + programmatic Sub-DAOs)
+- Milestone-based capital disbursement via AkoPay fiat rails (1.25% FX vs 8.2% industry)
+- NXT token: 100M fixed supply, capital recycling model, governance + access utility
+- AI intelligence layer: RVF early warning, pattern detection, research-funder matching
+- 8 production smart contracts: proposalRegistry, votingEngine, escrowManager, disbursementManager, reportingEnforcement, auditTrail, permissionManager, paymentRails
+- KYC/AML tiered onboarding (Tier 0–3 via AkoPay + Smile Identity)
+- Enterprise/government intelligence dashboards ($50K–$300K/yr)
+- Research marketplace with IPFS decentralized storage
+- Field knowledge capture with geo-tagging
+- Credibility scoring v2 (multi-signal reputation)
+
+---
+
+## 2. Repository Structure
+
+```
+nexterra-app-main/
+├── app/
+│   ├── (tabs)/
+│   │   ├── index.tsx
+│   │   ├── fund.tsx
+│   │   ├── dao.tsx
+│   │   └── match.tsx
+│   ├── intelligence/
+│   ├── vote/[id].tsx
+│   ├── submit-proposal.tsx
+│   ├── profile.tsx
+│   ├── economics.tsx
+│   ├── field-knowledge.tsx
+│   └── research/[id].tsx
+├── components/
+├── services/
+│   ├── daoContract/
+│   │   ├── proposalRegistry.ts
+│   │   ├── votingEngine.ts
+│   │   ├── escrowManager.ts
+│   │   ├── disbursementManager.ts
+│   │   ├── reportingEnforcement.ts
+│   │   ├── auditTrail.ts
+│   │   ├── permissionManager.ts
+│   │   ├── paymentRails.ts
+│   │   └── types.ts
+│   └── nxtToken.ts
+├── mocks/
+├── constants/
+└── package.json
+```
+
+---
+
+## 3. Current State Audit
+
+| Module | Screen/Feature | Status | Issue |
+|--------|---------------|--------|-------|
+| Auth | Login / Signup | ⚠️ Partial | No Supabase auth session persistence |
+| Governance | Proposal submission | ⚠️ Mock | Not written to database |
+| Governance | DAO voting | ⚠️ Mock | No on-chain tx or Supabase write |
+| Governance | Sub-DAO lifecycle | ❌ Missing | No instantiation logic |
+| Funding | Fund modal / payments | ❌ Broken | Buttons call toast() only |
+| Funding | Milestone tracking | ❌ Missing | No milestone table or UI |
+| Funding | Disbursement engine | ❌ Missing | AkoPay not integrated |
+| Token | NXT dashboard | ⚠️ Mock | No blockchain reads |
+| Token | Capital recycling | ❌ Missing | No contract interaction |
+| KYC | KYC notice shown | ❌ Broken | No actual verification flow |
+| Intelligence | Alert patterns | ⚠️ Mock | Hardcoded demo data |
+| Intelligence | AI analysis | ❌ Missing | No Anthropic API calls |
+| Intelligence | RVF early warning | ❌ Missing | No real data sources |
+| Research | Marketplace | ❌ Missing | Entire feature absent |
+| Field | Geo-tagged capture | ⚠️ Partial | No Supabase write, no PostGIS |
+| Enterprise | Gov dashboard | ❌ Missing | No enterprise auth or screens |
+| Credibility | Score calculation | ⚠️ Mock | Static number, no aggregation |
+| Notifications | Push alerts | ❌ Missing | No service worker or Expo push |
+| Payments | Mobile money | ❌ Broken | API endpoints defined but never called |
+| Payments | AkoPay rails | ❌ Missing | No AkoPay SDK integration |
+
+---
+
+## 4. Complete Gap Analysis — What's Missing
+
+### 🔴 P1 — Critical (Blocks Core Value Proposition)
+
+#### 4.1 AkoPay Payment Rails
+Replace all mock payment calls with real AkoPay REST API calls. Wire MTN MoMo, Airtel Money, and bank transfer buttons to actual payment initiation. Store real AkoPay transaction references in Supabase. Handle AkoPay webhooks for payment confirmation.
+
+#### 4.2 KYC/AML Verification
+Implement AkoPay Tier 0–3 KYC onboarding. Add Smile Identity as fallback. Store kyc_tier and kyc_status on user profile. Gate funding actions behind minimum KYC tier checks.
+
+#### 4.3 Milestone Tracking & Disbursement Engine
+Create milestones, milestone_evidence, and disbursement_requests Supabase tables. Build milestone creation UI. Build evidence upload screen. Build milestone approval voting UI. Wire approved milestones to AkoPay disbursement API.
+
+#### 4.4 Supabase Backend Connection
+Install @supabase/supabase-js. Create lib/supabase.ts. Replace all mocks/*.ts imports with real Supabase query hooks. Implement Row Level Security policies. Set up Supabase Auth.
+
+#### 4.5 NXT Token Dashboard
+Initialize ethers.js with Polygon RPC. Deploy NXT ERC-20 contract. Fetch balanceOf(userAddress) on screen load. Fetch totalSupply() for treasury dashboard.
+
+---
+
+### 🟡 P2 — High Priority
+
+#### 4.6 AI Intelligence Layer
+Call Anthropic API with Claude. Build Supabase Edge Function: intelligence-analyzer. Integrate NewsAPI/GDELT for live signal aggregation. Replace mocks/intelligence.ts with real Supabase intelligence_patterns table.
+
+#### 4.7 Enterprise/Government Dashboard
+Add user_role types. Build protected enterprise route. Build government dashboard with capital deployed, milestone rates, intelligence alerts. Build PDF/Excel export.
+
+#### 4.8 Sub-DAO Lifecycle Management
+Add status enum to daos table. Build Sub-DAO instantiation flow. Build dissolution flow. Wire capital return to Parent DAO treasury.
+
+#### 4.9 Research Marketplace
+Create research_publications and datasets Supabase tables. Integrate Pinata IPFS API. Integrate CrossRef API. Build publication upload flow. Build marketplace transaction fee via AkoPay.
+
+#### 4.10 Credibility Scoring v2
+Build Supabase function calculate_credibility_score(user_id). Run recalculation trigger on relevant table updates. Display score breakdown on profile.
+
+---
+
+## 5. All Required APIs & Integrations
+
+### 5.1 AkoPay
+- **Purpose:** All fiat disbursement, cross-border payments, KYC
+- **Docs:** https://developer.akopay.com
+- **Base URL:** https://api.akopay.com/v1
+- **Key endpoints:**
+  - POST /wallets/create
+  - GET /wallets/{id}/balance
+  - POST /payments/initiate
+  - GET /payments/{id}/status
+  - POST /kyc/initiate
+  - GET /kyc/{user_id}/status
+  - POST /group-wallets/create
+  - GET /fx/rates
+
+### 5.2 Supabase
+- **Purpose:** PostgreSQL database, user auth, real-time subscriptions, file storage
+- **Docs:** https://supabase.com/docs
+- **Install:** `npx expo install @supabase/supabase-js`
+
+### 5.3 Anthropic API
+- **Purpose:** Pattern detection, risk modeling, research-funder matching, report generation
+- **Model:** claude-sonnet-4-20250514
+- **Docs:** https://docs.anthropic.com
+
+### 5.4 Smile Identity
+- **Purpose:** African-first ID verification
+- **Docs:** https://docs.smileidentity.com
+- **Coverage:** 30+ African countries
+
+### 5.5 Ethers.js / Viem
+- **Purpose:** NXT token balance reads, on-chain governance state
+- **Network:** Polygon (MATIC)
+- **Install:** `npx expo install ethers`
+
+### 5.6 WalletConnect / Web3Modal
+- **Purpose:** Allow users to connect MetaMask, Trust Wallet, Valora
+- **Docs:** https://docs.walletconnect.com
+- **Install:** `npx expo install @walletconnect/modal-react-native`
+
+### 5.7 Pinata IPFS
+- **Purpose:** Research marketplace decentralized storage
+- **Docs:** https://docs.pinata.cloud
+- **Install:** `npm install pinata`
+
+### 5.8 CrossRef API
+- **Purpose:** DOI metadata, citation counts
+- **Docs:** https://api.crossref.org
+- **Free, no API key required**
+
+### 5.9 NewsAPI / GDELT
+- **Purpose:** Real-time news signals for RVF early warning
+- **GDELT endpoint:** https://api.gdeltproject.org/api/v2/doc/doc
+
+### 5.10 Expo Push Notifications
+- **Purpose:** Intelligence alerts, vote deadlines, milestone approvals
+- **Docs:** https://docs.expo.dev/push-notifications/overview/
+- **Install:** `npx expo install expo-notifications`
+
+---
+
+## 6. Missing Supabase Database Schema
+
+```sql
+-- Enable PostGIS
+CREATE EXTENSION IF NOT EXISTS postgis;
+
+-- KYC VERIFICATIONS
+CREATE TABLE IF NOT EXISTS kyc_verifications (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  tier INTEGER NOT NULL DEFAULT 0 CHECK (tier BETWEEN 0 AND 3),
+  status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'in_review', 'approved', 'rejected', 'expired')),
+  provider TEXT NOT NULL DEFAULT 'akopay' CHECK (provider IN ('akopay', 'smile_identity', 'manual')),
+  provider_ref TEXT,
+  document_type TEXT,
+  document_country TEXT,
+  verified_at TIMESTAMPTZ,
+  expires_at TIMESTAMPTZ,
+  rejection_reason TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+ALTER TABLE kyc_verifications ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Users can view own KYC" ON kyc_verifications FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "Service role can manage KYC" ON kyc_verifications FOR ALL USING (auth.role() = 'service_role');
+
+-- NXT BALANCES
+CREATE TABLE IF NOT EXISTS nxt_balances (
+  user_id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  wallet_address TEXT,
+  balance DECIMAL(18, 8) NOT NULL DEFAULT 0,
+  locked_balance DECIMAL(18, 8) NOT NULL DEFAULT 0,
+  governance_weight DECIMAL(18, 8) NOT NULL DEFAULT 0,
+  tier TEXT NOT NULL DEFAULT 'basic' CHECK (tier IN ('basic', 'standard', 'premium', 'enterprise')),
+  last_synced_at TIMESTAMPTZ DEFAULT NOW(),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+ALTER TABLE nxt_balances ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Users can view own NXT balance" ON nxt_balances FOR SELECT USING (auth.uid() = user_id);
+
+-- NXT TRANSACTIONS
+CREATE TABLE IF NOT EXISTS nxt_transactions (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  from_user_id UUID REFERENCES auth.users(id),
+  to_user_id UUID REFERENCES auth.users(id),
+  from_address TEXT,
+  to_address TEXT,
+  amount DECIMAL(18, 8) NOT NULL,
+  type TEXT NOT NULL CHECK (type IN ('governance_lock', 'governance_unlock', 'incentive_reward', 'allocation', 'recycled', 'treasury_return')),
+  tx_hash TEXT,
+  block_number BIGINT,
+  proposal_id UUID,
+  milestone_id UUID,
+  notes TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+ALTER TABLE nxt_transactions ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Users can view own NXT transactions" ON nxt_transactions FOR SELECT USING (auth.uid() = from_user_id OR auth.uid() = to_user_id);
+
+-- MILESTONES
+CREATE TABLE IF NOT EXISTS milestones (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  proposal_id UUID NOT NULL,
+  dao_id UUID NOT NULL,
+  title TEXT NOT NULL,
+  description TEXT NOT NULL,
+  milestone_number INTEGER NOT NULL,
+  amount_usd DECIMAL(12, 2) NOT NULL,
+  amount_nxt DECIMAL(18, 8),
+  status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'active', 'evidence_submitted', 'under_review', 'approved', 'disbursed', 'disputed', 'failed')),
+  deadline TIMESTAMPTZ,
+  evidence_requirement TEXT NOT NULL,
+  evidence_url TEXT,
+  evidence_submitted_at TIMESTAMPTZ,
+  approved_at TIMESTAMPTZ,
+  disbursed_at TIMESTAMPTZ,
+  disbursement_id UUID,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+ALTER TABLE milestones ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Public can view milestones" ON milestones FOR SELECT USING (true);
+
+-- MILESTONE VOTES
+CREATE TABLE IF NOT EXISTS milestone_votes (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  milestone_id UUID NOT NULL REFERENCES milestones(id) ON DELETE CASCADE,
+  voter_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  vote TEXT NOT NULL CHECK (vote IN ('approve', 'reject', 'abstain')),
+  comment TEXT,
+  nxt_weight DECIMAL(18, 8) DEFAULT 1.0,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE(milestone_id, voter_id)
+);
+ALTER TABLE milestone_votes ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Authenticated users can vote on milestones" ON milestone_votes FOR INSERT WITH CHECK (auth.uid() = voter_id);
+CREATE POLICY "Public can view milestone votes" ON milestone_votes FOR SELECT USING (true);
+
+-- DISBURSEMENTS
+CREATE TABLE IF NOT EXISTS disbursements (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  milestone_id UUID NOT NULL REFERENCES milestones(id),
+  proposal_id UUID NOT NULL,
+  recipient_user_id UUID NOT NULL REFERENCES auth.users(id),
+  amount_usd DECIMAL(12, 2) NOT NULL,
+  amount_local DECIMAL(18, 4),
+  local_currency TEXT,
+  exchange_rate DECIMAL(12, 6),
+  fx_fee_usd DECIMAL(10, 4),
+  platform_fee_usd DECIMAL(10, 4),
+  net_amount_received DECIMAL(12, 2),
+  payment_method TEXT NOT NULL CHECK (payment_method IN ('mobile_money', 'bank_transfer', 'papss', 'link_token')),
+  payment_provider TEXT,
+  akopay_ref TEXT,
+  akopay_wallet_id TEXT,
+  status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'processing', 'completed', 'failed', 'reversed')),
+  initiated_at TIMESTAMPTZ DEFAULT NOW(),
+  completed_at TIMESTAMPTZ,
+  failure_reason TEXT,
+  on_chain_tx_hash TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+ALTER TABLE disbursements ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Recipients can view own disbursements" ON disbursements FOR SELECT USING (auth.uid() = recipient_user_id);
+
+-- FIELD OBSERVATIONS
+CREATE TABLE IF NOT EXISTS field_observations (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  content TEXT NOT NULL,
+  category TEXT NOT NULL CHECK (category IN ('disease_signal', 'climate_event', 'livestock_health', 'wildlife_observation', 'water_quality', 'vegetation', 'human_health', 'other')),
+  location GEOGRAPHY(POINT, 4326),
+  country TEXT,
+  region TEXT,
+  photo_url TEXT,
+  photo_urls TEXT[],
+  validation_status TEXT NOT NULL DEFAULT 'pending' CHECK (validation_status IN ('pending', 'validated', 'rejected', 'flagged')),
+  validated_by UUID REFERENCES auth.users(id),
+  validated_at TIMESTAMPTZ,
+  nxt_reward DECIMAL(8, 4) DEFAULT 0,
+  intelligence_linked BOOLEAN DEFAULT false,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+ALTER TABLE field_observations ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Users can manage own observations" ON field_observations FOR ALL USING (auth.uid() = user_id);
+CREATE POLICY "Validators can view all observations" ON field_observations FOR SELECT USING (true);
+CREATE INDEX idx_field_observations_location ON field_observations USING GIST (location);
+
+-- RESEARCH PUBLICATIONS
+CREATE TABLE IF NOT EXISTS research_publications (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  author_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  title TEXT NOT NULL,
+  abstract TEXT,
+  doi TEXT UNIQUE,
+  journal TEXT,
+  published_year INTEGER,
+  keywords TEXT[],
+  ipfs_cid TEXT,
+  file_url TEXT,
+  file_size_bytes BIGINT,
+  access_type TEXT NOT NULL DEFAULT 'open' CHECK (access_type IN ('open', 'paid', 'request_only')),
+  price_usd DECIMAL(8, 2),
+  citation_count INTEGER DEFAULT 0,
+  download_count INTEGER DEFAULT 0,
+  status TEXT NOT NULL DEFAULT 'draft' CHECK (status IN ('draft', 'under_review', 'published', 'retracted')),
+  peer_reviewed BOOLEAN DEFAULT false,
+  one_health_domains TEXT[],
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+ALTER TABLE research_publications ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Public can view published research" ON research_publications FOR SELECT USING (status = 'published');
+CREATE POLICY "Authors can manage own research" ON research_publications FOR ALL USING (auth.uid() = author_id);
+
+-- INTELLIGENCE PATTERNS
+CREATE TABLE IF NOT EXISTS intelligence_patterns (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  pattern_type TEXT NOT NULL CHECK (pattern_type IN ('outbreak_signal', 'climate_risk', 'funding_gap', 'research_overlap', 'rvf_early_warning', 'arbovirus_alert')),
+  title TEXT NOT NULL,
+  summary TEXT NOT NULL,
+  severity TEXT NOT NULL CHECK (severity IN ('low', 'medium', 'high', 'critical')),
+  confidence_score DECIMAL(4, 3) CHECK (confidence_score BETWEEN 0 AND 1),
+  region TEXT,
+  countries TEXT[],
+  source_observations UUID[],
+  source_news_urls TEXT[],
+  ai_analysis TEXT,
+  ai_model_used TEXT,
+  is_public BOOLEAN DEFAULT true,
+  is_enterprise_only BOOLEAN DEFAULT false,
+  auto_generated BOOLEAN DEFAULT false,
+  generated_by UUID REFERENCES auth.users(id),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+ALTER TABLE intelligence_patterns ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Public can view non-enterprise patterns" ON intelligence_patterns FOR SELECT USING (is_enterprise_only = false);
+
+-- ENTERPRISE ACCOUNTS
+CREATE TABLE IF NOT EXISTS enterprise_accounts (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  org_name TEXT NOT NULL,
+  org_type TEXT NOT NULL CHECK (org_type IN ('government', 'dfi', 'foundation', 'insurance', 'agribusiness', 'ngo', 'university')),
+  country TEXT,
+  dashboard_tier TEXT NOT NULL DEFAULT 'basic' CHECK (dashboard_tier IN ('basic', 'standard', 'premium', 'white_label')),
+  contract_value_usd DECIMAL(12, 2),
+  contract_start TIMESTAMPTZ,
+  contract_end TIMESTAMPTZ,
+  allowed_regions TEXT[],
+  allowed_countries TEXT[],
+  akopay_ref TEXT,
+  status TEXT NOT NULL DEFAULT 'active',
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+ALTER TABLE enterprise_accounts ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Users can view own enterprise account" ON enterprise_accounts FOR SELECT USING (auth.uid() = user_id);
+
+-- CREDIBILITY SCORES
+CREATE TABLE IF NOT EXISTS credibility_scores (
+  user_id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  overall_score INTEGER NOT NULL DEFAULT 0 CHECK (overall_score BETWEEN 0 AND 100),
+  funded_work_score INTEGER DEFAULT 0,
+  dao_participation_score INTEGER DEFAULT 0,
+  reporting_compliance_score INTEGER DEFAULT 0,
+  peer_review_score INTEGER DEFAULT 0,
+  field_contribution_score INTEGER DEFAULT 0,
+  milestone_completion_score INTEGER DEFAULT 0,
+  proposals_submitted INTEGER DEFAULT 0,
+  proposals_funded INTEGER DEFAULT 0,
+  milestones_completed INTEGER DEFAULT 0,
+  milestones_failed INTEGER DEFAULT 0,
+  votes_cast INTEGER DEFAULT 0,
+  peer_reviews_written INTEGER DEFAULT 0,
+  field_observations_validated INTEGER DEFAULT 0,
+  last_calculated_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+ALTER TABLE credibility_scores ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Anyone can view credibility scores" ON credibility_scores FOR SELECT USING (true);
+
+-- PUSH NOTIFICATION TOKENS
+CREATE TABLE IF NOT EXISTS user_push_tokens (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  expo_push_token TEXT NOT NULL,
+  device_type TEXT CHECK (device_type IN ('ios', 'android', 'web')),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE(user_id, expo_push_token)
+);
+
+-- SUB-DAO LIFECYCLE
+CREATE TABLE IF NOT EXISTS sub_dao_lifecycle (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  dao_id UUID NOT NULL,
+  proposal_id UUID NOT NULL,
+  status TEXT NOT NULL DEFAULT 'proposed' CHECK (status IN ('proposed', 'instantiated', 'active', 'reporting', 'dissolved', 'emergency_paused')),
+  capital_allocated_usd DECIMAL(12, 2) DEFAULT 0,
+  capital_deployed_usd DECIMAL(12, 2) DEFAULT 0,
+  capital_returned_usd DECIMAL(12, 2) DEFAULT 0,
+  milestones_total INTEGER DEFAULT 0,
+  milestones_completed INTEGER DEFAULT 0,
+  on_chain_address TEXT,
+  instantiated_at TIMESTAMPTZ,
+  dissolved_at TIMESTAMPTZ,
+  dissolution_reason TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+```
+
+---
+
+## 7. Feature Implementation Checklist
+
+### Phase 1 — Foundation
+- [ ] Install Supabase client — `npx expo install @supabase/supabase-js`
+- [ ] Create `lib/supabase.ts` — client initialization with AsyncStorage session persistence
+- [ ] Replace `mocks/` data — switch all 8 mock files to real Supabase queries
+- [ ] Auth flow — connect signup/login to Supabase auth
+- [ ] Run database migration — execute full SQL from Section 6
+- [ ] Set up Row Level Security — confirm all RLS policies are active
+
+### Phase 2 — Payments & KYC
+- [ ] AkoPay account — sign up at developer.akopay.com
+- [ ] Create `services/akopay.ts` — HTTP client wrapping AkoPay REST API
+- [ ] Replace `paymentRails.ts` mock — call real AkoPay payment initiation endpoint
+- [ ] Wire fund modal buttons — MTN MoMo, Airtel, Bank Transfer call real API
+- [ ] AkoPay webhook endpoint — Supabase Edge Function receives payment confirmations
+- [ ] KYC flow — implement AkoPay Tier 0 on signup, Tier 2+ before proposal submission
+- [ ] Smile Identity fallback — integrate for document verification
+- [ ] KYC gate — funding actions check kyc_verifications.tier >= 1
+
+### Phase 3 — Milestone Engine
+- [ ] Milestones table populated on proposal submission
+- [ ] Milestone list view under each funded proposal
+- [ ] Evidence upload — expo-document-picker + Supabase Storage
+- [ ] Milestone vote UI — approve/reject/comment for Sub-DAO members
+- [ ] Vote aggregation — transition milestone to approved status
+- [ ] AkoPay disbursement trigger on milestone approved
+- [ ] Disbursement status display in funder dashboard
+
+### Phase 4 — NXT Token & Blockchain
+- [ ] Install ethers — `npx expo install ethers`
+- [ ] Deploy NXT ERC-20 contract on Polygon
+- [ ] Create `lib/blockchain.ts` — RPC provider and contract instance
+- [ ] economics.tsx live data — balanceOf, totalSupply from on-chain
+- [ ] nxt_balances sync — Edge Function mirrors on-chain holdings hourly
+- [ ] WalletConnect integration — wallet connect button on profile screen
+- [ ] Governance vote signing — DAO votes signed on-chain via connected wallet
+
+### Phase 5 — AI Intelligence Layer
+- [ ] Supabase Edge Function `intelligence-analyzer` — runs on cron every 6 hours
+- [ ] NewsAPI integration — fetch RVF/arbovirus/climate news
+- [ ] Replace mocks/intelligence.ts — query intelligence_patterns table
+- [ ] Alert generation — high severity patterns trigger push notifications
+- [ ] Proposal AI review — score quality and relevance on submission
+- [ ] Funder-project matching AI — ranked matches with rationale
+- [ ] Government report export — Anthropic + jsPDF
+
+### Phase 6 — Enterprise Dashboard
+- [ ] Enterprise auth guard — protected route checks enterprise_accounts
+- [ ] Government dashboard screen — capital by region, milestone rates, Sub-DAOs
+- [ ] Intelligence product view — enterprise_only patterns visible
+- [ ] PDF/Excel export — jsPDF + SheetJS
+- [ ] RLS for enterprise data — allowed_countries gates access
+
+### Phase 7 — Research Marketplace
+- [ ] Install Pinata SDK — `npm install pinata`
+- [ ] Publication upload flow — PDF + metadata → Pinata → IPFS CID stored
+- [ ] CrossRef DOI lookup — auto-populate metadata on DOI input
+- [ ] Marketplace browse screen — published research with filters
+- [ ] Purchase flow — AkoPay payment → signed Pinata URL
+- [ ] Citation tracking — increment citation_count on cross-reference
+
+### Phase 8 — Field Knowledge & Notifications
+- [ ] Geo observation write — save to field_observations with PostGIS coordinates
+- [ ] Photo upload — expo-image-picker → Supabase Storage
+- [ ] Offline sync — AsyncStorage queue for offline submissions
+- [ ] Validator workflow — approve/reject pending observations
+- [ ] NXT reward on validation — Supabase trigger awards NXT to observer
+- [ ] Expo push tokens — register device token on login
+- [ ] Push Edge Function — send-push-notification triggered by database events
+
+### Phase 9 — Credibility v2 & Sub-DAO Lifecycle
+- [ ] calculate_credibility_score(user_id) Supabase function
+- [ ] Trigger on relevant tables — auto-recalculate on milestone/vote/observation changes
+- [ ] Profile score breakdown — show component scores on profile screen
+- [ ] Sub-DAO state machine — instantiation on approval, dissolution on final milestone
+- [ ] Capital return on dissolution — unused escrow returned to Parent DAO treasury
+
+---
+
+## 8. Priority Build Order
+
+```
+Week 1–2:   Supabase connection + auth + database migration
+Week 3–4:   AkoPay account + payment service + KYC flow
+Week 5–6:   Milestone tables + evidence upload + approval voting
+Week 7:     AkoPay disbursement trigger on milestone approval
+Week 8:     NXT token reads (ethers.js) + economics screen live data
+Week 9–10:  Anthropic intelligence Edge Function + replace mock intelligence
+Week 11–12: Enterprise dashboard + PDF export
+Week 13–14: Research marketplace (Pinata + CrossRef)
+Week 15:    Field observation write + geo storage
+Week 16:    Push notifications
+Week 17:    Credibility v2 + Sub-DAO lifecycle state machine
+Week 18:    QA pass + smart contract audit prep
+```
+
+---
+
+## 9. Environment Variables Master List
+
+```bash
+# SUPABASE
+EXPO_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+EXPO_PUBLIC_SUPABASE_ANON_KEY=eyJ...
+SUPABASE_SERVICE_ROLE_KEY=eyJ...
+
+# AKOPAY
+EXPO_PUBLIC_AKOPAY_BASE_URL=https://api.akopay.com/v1
+EXPO_PUBLIC_AKOPAY_API_KEY=ak_live_...
+EXPO_PUBLIC_AKOPAY_ENVIRONMENT=sandbox
+AKOPAY_WEBHOOK_SECRET=whsec_...
+
+# ANTHROPIC (Edge Functions only — never client-side)
+ANTHROPIC_API_KEY=sk-ant-api03-...
+
+# BLOCKCHAIN
+EXPO_PUBLIC_RPC_URL=https://polygon-rpc.com
+EXPO_PUBLIC_CHAIN_ID=137
+EXPO_PUBLIC_NXT_CONTRACT_ADDRESS=0x...
+EXPO_PUBLIC_WALLETCONNECT_PROJECT_ID=
+
+# KYC (Edge Functions only)
+SMILE_IDENTITY_PARTNER_ID=
+SMILE_IDENTITY_API_KEY=
+SMILE_IDENTITY_ENVIRONMENT=sandbox
+
+# STORAGE / IPFS (Edge Functions only)
+PINATA_JWT=
+EXPO_PUBLIC_PINATA_GATEWAY=https://gateway.pinata.cloud
+
+# INTELLIGENCE (Edge Functions only)
+NEWS_API_KEY=
+```
+
+**Set Supabase Edge Function secrets via CLI:**
+```bash
+supabase secrets set ANTHROPIC_API_KEY=sk-ant-...
+supabase secrets set AKOPAY_WEBHOOK_SECRET=whsec_...
+supabase secrets set SMILE_IDENTITY_API_KEY=...
+supabase secrets set NEWS_API_KEY=...
+supabase secrets set PINATA_JWT=...
+```
+
+---
+
+## 10. Smart Contract Integration Guide
+
+### Recommended Network: Polygon (MATIC)
+- Low gas fees (~$0.001 per transaction)
+- EVM-compatible (Solidity contracts)
+- USDC native support
+- Active African developer community
+
+### Install dependencies
+```bash
+npx expo install ethers
+```
+
+### Replace mock contract calls
+
+Current pattern (broken):
+```typescript
+castVote(proposalId: string, vote: 'for' | 'against') {
+  console.log('[VotingEngine] Vote cast'); // MOCK
+  return { success: true };
+}
+```
+
+Required pattern (production):
+```typescript
+import { ethers } from 'ethers';
+
+const provider = new ethers.JsonRpcProvider(process.env.EXPO_PUBLIC_RPC_URL);
+
+export const getVotingEngineContract = (signer?: ethers.Signer) => {
+  return new ethers.Contract(
+    VOTING_ENGINE_ADDRESS,
+    VOTING_ENGINE_ABI,
+    signer || provider
+  );
+};
+
+export async function castVoteOnChain(
+  proposalId: string,
+  vote: boolean,
+  signer: ethers.Signer
+) {
+  const contract = getVotingEngineContract(signer);
+  const tx = await contract.castVote(proposalId, vote);
+  const receipt = await tx.wait();
+  await supabase.from('nxt_transactions').insert({
+    type: 'governance_lock',
+    tx_hash: receipt.hash,
+    proposal_id: proposalId,
+  });
+  return receipt;
+}
+```
+
+### Smart Contract Audit Requirement
+All 8 contracts must pass a 3rd-party security audit before public launch.
+Recommended auditors:
+- **Code4rena** — competitive audit, cost-effective
+- **Halborn** — strong DeFi/DeSci track record
+- **Consensys Diligence** — gold standard
+
+---
+
+## 11. AkoPay Integration Specification
+
+```typescript
+// services/akopay.ts
+const AKOPAY_BASE = process.env.EXPO_PUBLIC_AKOPAY_BASE_URL!;
+const AKOPAY_KEY = process.env.EXPO_PUBLIC_AKOPAY_API_KEY!;
+
+const headers = {
+  'Content-Type': 'application/json',
+  'Authorization': `Bearer ${AKOPAY_KEY}`,
+  'X-Environment': process.env.EXPO_PUBLIC_AKOPAY_ENVIRONMENT || 'sandbox',
+};
+
+export const akopay = {
+  async createEscrowWallet(daoId: string, currency = 'USD') {
+    const res = await fetch(`${AKOPAY_BASE}/wallets/create`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ entity_type: 'sub_dao', entity_id: daoId, wallet_type: 'escrow', currency }),
+    });
+    return res.json();
+  },
+
+  async initiateDisbursement(params: {
+    from_wallet_id: string;
+    recipient_phone?: string;
+    recipient_bank_account?: string;
+    amount_usd: number;
+    destination_currency: string;
+    destination_country: string;
+    payment_method: 'mobile_money' | 'bank_transfer' | 'papss';
+    reference: string;
+  }) {
+    const res = await fetch(`${AKOPAY_BASE}/payments/initiate`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(params),
+    });
+    return res.json();
+  },
+
+  async getPaymentStatus(akoPayRef: string) {
+    const res = await fetch(`${AKOPAY_BASE}/payments/${akoPayRef}/status`, { headers });
+    return res.json();
+  },
+
+  async initiateKYC(params: {
+    user_id: string;
+    phone_number: string;
+    tier_requested: 1 | 2 | 3;
+    redirect_url: string;
+  }) {
+    const res = await fetch(`${AKOPAY_BASE}/kyc/initiate`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(params),
+    });
+    return res.json();
+  },
+
+  async getFXRates(fromCurrency: string, toCurrencies: string[]) {
+    const params = new URLSearchParams({ from: fromCurrency, to: toCurrencies.join(',') });
+    const res = await fetch(`${AKOPAY_BASE}/fx/rates?${params}`, { headers });
+    return res.json();
+  },
+};
+```
+
+---
+
+## 12. AI Intelligence Layer Specification
+
+```typescript
+// supabase/functions/intelligence-analyzer/index.ts
+import Anthropic from 'https://esm.sh/@anthropic-ai/sdk';
+
+const anthropic = new Anthropic({ apiKey: Deno.env.get('ANTHROPIC_API_KEY') });
+
+const systemPrompt = `You are NexTerra's intelligence analysis engine — an expert in One Health 
+surveillance, disease ecology, and climate-health interactions across Africa. 
+
+You analyze field observations, research proposals, and news signals to identify:
+1. Emerging disease outbreak patterns (especially RVF, arbovirus, zoonotic spillover)
+2. Climate-health risk signals
+3. Research funding gaps
+4. Cross-sector collaboration opportunities
+
+Always return structured JSON with:
+pattern_type, title, summary, severity (low/medium/high/critical), 
+confidence_score (0-1), region, countries[], key_indicators[], recommended_actions[].`;
+```
+
+---
+
+## 13. KYC/AML Flow Specification
+
+### Tier Structure
+
+| Tier | Requirement | Unlocks |
+|------|------------|---------|
+| 0 | Phone number only | View proposals, community feed |
+| 1 | Phone + email verified | Submit proposals, vote |
+| 2 | ID document (national ID / passport) | Receive disbursements up to $5,000 |
+| 3 | Full institutional KYC | Unlimited disbursements, enterprise features |
+
+### KYC Gate Implementation
+
+```typescript
+import { useKYCGate } from '@/hooks/useKYCGate';
+
+const { kycTier, requiresKYC, promptKYCUpgrade } = useKYCGate();
+
+if (kycTier < 1) {
+  promptKYCUpgrade(1, 'You need to verify your identity before submitting a proposal.');
+  return;
+}
+```
+
+---
+
+## 14. Milestone & Disbursement Engine Specification
+
+### Milestone Lifecycle State Machine
+
+```
+pending → active → evidence_submitted → under_review → approved → disbursed
+                                                      ↘ disputed → failed
+```
+
+### Disbursement Trigger (Edge Function)
+
+On `milestones.status` update to `approved`:
+1. Fetch Sub-DAO AkoPay escrow wallet
+2. Fetch recipient payment details
+3. Call `akopay.initiateDisbursement()`
+4. Write `akopay_ref` to `disbursements` table
+5. Update `milestones.disbursement_id`
+6. Send push notification to recipient and funder
+
+### Funder Dashboard View
+
+```
+Milestone 1  ✅  Disbursed $15,000 → Recipient in 2h 14m
+Milestone 2  🔄  Evidence submitted — under review
+Milestone 3  ⏳  Pending
+Milestone 4  ⏳  Pending
+```
+
+---
+
+## 15. NXT Token Dashboard Specification
+
+### Live Data Points
+
+| Data Point | Source | How to Fetch |
+|-----------|--------|-------------|
+| My NXT balance | nxt_balances + on-chain | contract.balanceOf(address) |
+| Total supply | On-chain | contract.totalSupply() |
+| DAO Treasury pool | nxt_balances WHERE entity = 'treasury' | Supabase query |
+| My governance weight | nxt_balances.governance_weight | Supabase query |
+| My tier | nxt_balances.tier | Supabase query |
+| NXT transactions | nxt_transactions WHERE user_id = me | Supabase query |
+| Active governance locks | nxt_balances.locked_balance | Supabase query |
+| Recycled this month | nxt_transactions WHERE type = 'recycled' | Supabase aggregate |
+
+### Token Allocation (100M NXT)
+
+- DAO Treasury Pool: 45M (45%)
+- Public / Institutional Access: 20M (20%)
+- Ecosystem Incentives: 15M (15%)
+- Core Contributors: 10M (10%)
+- Strategic Partners: 5M (5%)
+- Liquidity & Stability: 5M (5%)
+
+---
+
+## 16. Enterprise/Government Dashboard Specification
+
+### Route: `/enterprise/dashboard`
+
+Protected by `enterprise_accounts` record check.
+
+### Dashboard Widgets
+
+| Widget | Data Source |
+|--------|------------|
+| Capital deployed map | disbursements JOIN milestones with coordinates |
+| Active Sub-DAOs by country | sub_dao_lifecycle WHERE status = 'active' |
+| Milestone completion rate | milestones aggregate |
+| Intelligence alerts feed | intelligence_patterns WHERE is_enterprise_only = true |
+| Top researchers by credibility | credibility_scores JOIN profiles |
+| Field observation heatmap | field_observations PostGIS clustering |
+| Monthly capital flow chart | disbursements time series |
+| Export buttons | PDF (jsPDF) + Excel (SheetJS) |
+
+---
+
+## 17. Testing Strategy
+
+### Unit Tests
+- `services/akopay.ts` — mock fetch, test all payment scenarios
+- `services/daoContract/` — test contract call argument formatting
+- Supabase Edge Functions — use `supabase test functions`
+
+### Integration Tests
+- Payment flow: initiate → webhook → milestone update → push notification
+- KYC flow: initiate → verification URL → webhook → tier update
+- Milestone flow: evidence submit → votes → approval → disbursement
+
+### End-to-End Tests (Playwright)
+- Full proposal submission → DAO vote → milestone creation
+- Payment initiation → AkoPay sandbox → confirmation
+- Intelligence alert generation → push delivery
+
+---
+
+## 18. Deployment Checklist
+
+- [ ] All .env secrets set in Vercel dashboard and Supabase secrets
+- [ ] AkoPay switched from sandbox to production
+- [ ] Smart contract 3rd-party audit complete (Code4rena or Halborn)
+- [ ] NXT genesis mint executed on Polygon mainnet
+- [ ] Supabase production project created (separate from dev)
+- [ ] RLS policies audited by external reviewer
+- [ ] Database migration run and verified on production
+- [ ] AkoPay webhook URL registered in AkoPay dashboard
+- [ ] Expo app submitted to App Store and Google Play
+- [ ] Monitoring set up: Sentry + Supabase dashboard
+- [ ] Smart contract addresses updated in env vars
+- [ ] GDPR / POPIA compliance review completed
+- [ ] Load test: 500 concurrent users
+
+---
+
+## 19. Contributing Guidelines
+
+### Branch Naming
+```
+feature/akopay-payment-rails
+feature/milestone-engine
+fix/voting-supabase-write
+chore/replace-mocks-with-supabase
+```
+
+### Commit Format
+```
+feat(payments): wire AkoPay milestone disbursement API
+fix(kyc): correct Smile Identity webhook signature validation
+chore(db): add credibility_scores trigger function
+```
+
+### Pull Request Requirements
+1. All mock data in `mocks/` replaced by real Supabase queries before merge
+2. No `console.log('[ServiceName]...')` in service files
+3. New Supabase tables must include RLS policies
+4. New API calls must use env vars — no hardcoded URLs or keys
+5. Edge Functions must handle errors and return appropriate HTTP status codes
+
+### Priority Labels
+- `p1-critical` — payment infrastructure, KYC, milestone engine
+- `p2-core` — AI intelligence, enterprise dashboard, token dashboard
+- `p3-complete` — research marketplace, push notifications, credibility v2
+
+---
+
+*Built by Dr. Nichar Gregory, PhD · NexTerra DAO · Johannesburg, South Africa*
+
+*"Africa's scientific sovereignty is not a development goal. It is a right. NexTerra is the infrastructure to claim it."*
