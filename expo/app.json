@@ -24,9 +24,11 @@
       },
       "package": "app.rork.nextera_app"
     },
-    "web": {
-      "favicon": "./assets/images/favicon.png"
-    },
+   "web": {
+  "favicon": "./assets/images/favicon.png",
+  "output": "static",
+  "bundler": "metro"
+},
     "plugins": [
       [
         "expo-router",
